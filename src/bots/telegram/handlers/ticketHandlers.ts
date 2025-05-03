@@ -1,8 +1,9 @@
-import { Api, Bot, Context, InlineKeyboard, InputFile, RawApi } from "grammy";
-import { prisma } from "../../../db/prisma";
+import { Api, Bot, InlineKeyboard, InputFile, RawApi } from "grammy";
 import { sendEventsPage } from "../utils/paginator";
 import QRCode from "qrcode";
 import { SharedContext } from "@/types/grammy/SessionData";
+import { EventService } from "@/services/eventService";
+import { TicketService } from "@/services/ticketService";
 
 export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   bot.callbackQuery(/^back_to_events_(\d+)$/, async (ctx) => {
@@ -15,9 +16,7 @@ export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     const eventId = Number(ctx.match[1]);
     const fromPage = Number(ctx.match[2]);
   
-    const event = await prisma.event.findUnique({
-      where: { id: eventId },
-    });
+    const event = await EventService.getEventById(eventId);
   
     if (!event) {
       await ctx.answerCallbackQuery({ text: "Мероприятие не найдено!" });
@@ -51,16 +50,7 @@ export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     const userId = ctx.from?.id.toString();
     if (!userId) return;
   
-    const ticket = await prisma.ticket.findUnique({
-      where: { id: ticketId },
-      include: {
-        ticketType: {
-          include: {
-            event: true,
-          },
-        },
-      },
-    });
+    const ticket = await TicketService.getTicketById(ticketId);
   
     if (!ticket) {
       await ctx.answerCallbackQuery({ text: "Билет не найден." });

@@ -1,8 +1,9 @@
-import { Api, Bot, Context, InlineKeyboard, RawApi } from "grammy";
-import { prisma } from "../../../db/prisma";
+import { Api, Bot, InlineKeyboard, RawApi } from "grammy";
 import { sendBookingsPage, sendEventsPage } from "../utils/paginator";
 import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
 import { SharedContext } from "@/types/grammy/SessionData";
+import { BookingService } from "@/services/bookingService";
+import { BookingStatus } from "@prisma/client";
 
 export function handleNavigationCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   bot.callbackQuery("go_to_home", async (ctx) => {
@@ -46,36 +47,14 @@ export function handleNavigationCallbacks(bot: Bot<SharedContext, Api<RawApi>>) 
     const telegramUserId = ctx.from?.id.toString();
     if (!telegramUserId) return;
   
-    const user = await prisma.user.findUnique({
-      where: { telegramId: telegramUserId },
-    });
+    const user = ctx.sfx.user;
   
     if (!user) {
       await ctx.reply("Пользователь не найден.", extraGoToHomeKeyboard);
       return;
     }
   
-    const bookings = await prisma.booking.findMany({
-      where: {
-        userId: user.id,
-        status: "ACTIVE",
-      },
-      include: {
-        bookingTickets: {
-          include: {
-            ticket: {
-              include: {
-                ticketType: {
-                  include: {
-                    event: true,
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
+    const bookings = await BookingService.getByUserId(user.id, BookingStatus.PAID);
   
     let tickets: {
       ticketId: number;

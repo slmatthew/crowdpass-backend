@@ -7,6 +7,19 @@ export class TicketService {
     return randomBytes(16).toString('hex');
   }
 
+  static async getTicketById(ticketId: number) {
+    return prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        ticketType: {
+          include: {
+            event: true,
+          },
+        },
+      },
+    });
+  }
+
   static async updateStatus(ticketId: number, status: TicketStatus) {
     return prisma.ticket.update({
       where: { id: ticketId },
@@ -29,12 +42,13 @@ export class TicketService {
     });
   }
 
-  static async getAvailableTickets(ticketTypeId: number) {
+  static async getAvailableTickets(ticketTypeId: number, count?: number) {
     return prisma.ticket.findMany({
       where: {
         ticketTypeId,
         status: TicketStatus.AVAILABLE,
       },
+      take: count,
     });
   }
 

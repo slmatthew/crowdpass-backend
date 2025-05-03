@@ -1,41 +1,18 @@
-import { CommandContext, Context, InlineKeyboard } from "grammy";
-import { prisma } from "../../../db/prisma";
+import { CommandContext, InlineKeyboard } from "grammy";
 import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
+import { BookingService } from "@/services/bookingService";
+import { SharedContext } from "@/types/grammy/SessionData";
+import { BookingStatus } from "@prisma/client";
 
-export const myticketsCommand = async (ctx: CommandContext<Context>) => {
-  const telegramUserId = ctx.from?.id.toString();
-  if (!telegramUserId) return;
-
-  const user = await prisma.user.findUnique({
-    where: { telegramId: telegramUserId },
-  });
+export const myticketsCommand = async (ctx: CommandContext<SharedContext>) => {
+  const user = ctx.sfx.user;
 
   if (!user) {
     await ctx.reply("Пользователь не найден.", extraGoToHomeKeyboard);
     return;
   }
 
-  const bookings = await prisma.booking.findMany({
-    where: {
-      userId: user.id,
-      status: "ACTIVE",
-    },
-    include: {
-      bookingTickets: {
-        include: {
-          ticket: {
-            include: {
-              ticketType: {
-                include: {
-                  event: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-  });
+  const bookings = await BookingService.getByUserId(user.id, BookingStatus.PAID);
 
   let tickets: {
     ticketId: number;

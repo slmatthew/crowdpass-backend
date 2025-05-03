@@ -1,5 +1,4 @@
-import { Bot, Context, Api, RawApi, InlineKeyboard } from "grammy";
-import { prisma } from "../../../db/prisma";
+import { Bot, Api, RawApi, InlineKeyboard } from "grammy";
 import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
 import { bookingSessions } from "../sessions/bookingSession";
 import { SharedContext } from "@/types/grammy/SessionData";
@@ -8,6 +7,7 @@ import { UserService } from "@/services/userService";
 import { Platform } from "@prisma/client";
 import { UserError } from "@/types/errors/UserError";
 import { sendLinkRequest } from "@/bots/utils/sendLinkRequest";
+import { TicketService } from "@/services/ticketService";
 
 export function handleText(bot: Bot<SharedContext, Api<RawApi>>) {
   bot.on("message:text", async (ctx) => {
@@ -71,13 +71,7 @@ export function handleText(bot: Bot<SharedContext, Api<RawApi>>) {
       return;
     }
   
-    const availableTickets = await prisma.ticket.findMany({
-      where: {
-        ticketTypeId: session.ticketTypeId,
-        status: "AVAILABLE",
-      },
-      take: count,
-    });
+    const availableTickets = await TicketService.getAvailableTickets(session.ticketTypeId, count);
   
     if (availableTickets.length < count) {
       await ctx.reply(`😔 Недостаточно свободных билетов. Доступно только ${availableTickets.length}`);
