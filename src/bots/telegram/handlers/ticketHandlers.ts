@@ -57,7 +57,7 @@ export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
       return;
     }
   
-    const qrData = `https://tickets.slmatthew.dev/validate?secret=${ticket.qrCodeSecret}`;
+    const qrData = `${process.env.AP_BASE_URI}/validate?secret=${ticket.qrCodeSecret}`;
     const qrImageBuffer = await QRCode.toBuffer(qrData, { type: 'png' });
   
     await ctx.replyWithPhoto(new InputFile(qrImageBuffer), {
