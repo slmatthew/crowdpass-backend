@@ -35,6 +35,13 @@ export class UserService {
     });
   }
 
+  static async findUserByPlatformId(platform: Platform, platformId: string, includeAdmin: boolean = false) {
+    const where = platform === Platform.TELEGRAM ? { telegramId: platformId } : { vkId: platformId };
+    const include = includeAdmin ? { admin: true } : {};
+
+    return prisma.user.findUnique({ where, include });
+  }
+
   static async forceUpdatePlatformId(userId: number, targetPlatform: Platform, targetId: string) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if(!user) {

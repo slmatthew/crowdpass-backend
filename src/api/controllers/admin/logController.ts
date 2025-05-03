@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../../db/prisma';
+import { AdminDashboardService, LogFilters } from '@/services/adminDashboardService';
 
 export async function getLogs(req: Request, res: Response) {
   const {
@@ -12,7 +13,7 @@ export async function getLogs(req: Request, res: Response) {
     pageSize = 20,
   } = req.query;
 
-  const filters: any = {};
+  const filters: LogFilters = {};
 
   if (actorId) filters.actorId = Number(actorId);
   if (action) filters.action = String(action);
@@ -27,16 +28,6 @@ export async function getLogs(req: Request, res: Response) {
   const take = Number(pageSize);
   const skip = (Number(page) - 1) * take;
 
-  const [logs, total] = await Promise.all([
-    prisma.actionLog.findMany({
-      where: filters,
-      include: { actor: true },
-      orderBy: { createdAt: "desc" },
-      skip,
-      take,
-    }),
-    prisma.actionLog.count({ where: filters }),
-  ]);
-
+  const { logs, total } = await AdminDashboardService.getLogs(filters, skip, take);
   res.json({ logs, total });
 }

@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { prisma } from "../../../db/prisma";
 import axios from "axios";
 import { logAction } from "../../../utils/logAction";
 import { signToken } from "../../utils/signToken";
+import { UserService } from "@/services/userService";
 
 const VK_APP_ID = process.env.AP_VK_APP_ID!;
 const VK_APP_SECRET = process.env.AP_VK_SECRET_KEY!;
@@ -44,15 +44,12 @@ export async function vkCallback(req: Request, res: Response) {
     const vkData = response.data;
 
     if (!vkData.id_token) {
-      return res.status(400).json({ message: "Не удалось получить id_token", vkData });
+      return res.status(400).json({ message: "Не удалось получить id_token" });
     }
     
     const vkUserInfo = parseJwt(vkData.id_token);
 
-    const user = await prisma.user.findUnique({
-      where: { vkId: vkUserInfo.sub.toString() },
-      include: { admin: true },
-    });
+    const user = await UserService.findUserByPlatformId('VK', vkUserInfo.sub.toString(), true);
 
     if (!user || !user.admin) {
       return res.status(403).json({ message: "Доступ запрещён: пользователь не найден или не является администратором." });

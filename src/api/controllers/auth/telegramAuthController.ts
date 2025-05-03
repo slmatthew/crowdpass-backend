@@ -1,8 +1,8 @@
 import { Request, Response } from "express";
-import { prisma } from "../../../db/prisma";
-import { verifyTelegramAuth } from "../../utils/verifyTelegramAuth";
-import { logAction } from "../../../utils/logAction";
-import { signToken } from "../../utils/signToken";
+import { verifyTelegramAuth } from "@/api/utils/verifyTelegramAuth";
+import { signToken } from "@/api/utils/signToken";
+import { logAction } from "@/utils/logAction";
+import { UserService } from "@/services/userService";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
 const JWT_SECRET = process.env.JWT_SECRET!;
@@ -19,10 +19,7 @@ export async function telegramCallback(req: Request, res: Response) {
   }
 
   try {
-    const user = await prisma.user.findUnique({
-      where: { telegramId: data.id.toString() },
-      include: { admin: true },
-    });
+    const user = await UserService.findUserByPlatformId('TELEGRAM', data.id.toString(), true);
 
     if (!user || !user.admin) {
       return res.status(403).json({ message: "Нет доступа." });
