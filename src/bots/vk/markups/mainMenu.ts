@@ -17,4 +17,5 @@ export const getMainMenuKeyboard = () =>
       label: '🎫 Мои билеты',
       payload: { action: 'my_tickets' },
       color: 'secondary',
-    });
+    })
+    .oneTime(false);
