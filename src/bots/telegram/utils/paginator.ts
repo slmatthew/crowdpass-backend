@@ -1,12 +1,12 @@
 import { CallbackQueryContext, CommandContext, Context, InlineKeyboard } from "grammy";
+import { SharedContext } from "@/types/grammy/SessionData";
+import { EventService } from "@/services/eventService";
+import { BookingService } from "@/services/bookingService";
 import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
-import { PAGE_SIZE } from "../../../constants/appConstants";
-import { prisma } from "../../../db/prisma";
+import { PAGE_SIZE } from "@/constants/appConstants";
 
-export async function sendBookingsPage(ctx: CommandContext<Context>|CallbackQueryContext<Context>, userId: string, page: number, isEdit = false) {
-  const user = await prisma.user.findUnique({
-    where: { telegramId: userId },
-  });
+export async function sendBookingsPage(ctx: CommandContext<SharedContext>|CallbackQueryContext<SharedContext>, userId: string, page: number, isEdit = false) {
+  const user = ctx.sfx.user;
 
   if (!user) {
     if (isEdit) {
@@ -17,30 +17,7 @@ export async function sendBookingsPage(ctx: CommandContext<Context>|CallbackQuer
     return;
   }
 
-  const bookings = await prisma.booking.findMany({
-    where: {
-      userId: user.id,
-      status: "ACTIVE",
-    },
-    include: {
-      bookingTickets: {
-        include: {
-          ticket: {
-            include: {
-              ticketType: {
-                include: {
-                  event: true,
-                },
-              },
-            },
-          },
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const bookings = await BookingService.getByUserId(user.id);
 
   if (bookings.length === 0) {
     if (isEdit) {
@@ -115,9 +92,7 @@ export async function sendBookingsPage(ctx: CommandContext<Context>|CallbackQuer
 }
 
 export async function sendEventsPage(ctx: CommandContext<Context>|CallbackQueryContext<Context>, page: number, isEdit = false) {
-  const events = await prisma.event.findMany({
-    orderBy: { startDate: "asc" },
-  });
+  const events = await EventService.getAllEvents();
 
   if (events.length === 0) {
     const message = "Пока нет доступных мероприятий 😔";

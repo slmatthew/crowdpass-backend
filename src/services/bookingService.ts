@@ -71,6 +71,50 @@ export class BookingService {
     return { bookings, total };
   }
 
+  static async getById(id: number) {
+    return prisma.booking.findUnique({
+      where: { id },
+      include: {
+        user: true,
+        bookingTickets: {
+          include: {
+            ticket: {
+              include: {
+                ticketType: {
+                  include: { event: true },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
+  /**
+   * Получить все бронирования пользователя
+   * Используется в команде mybookings в ботах
+   */
+  static async getByUserId(userId: number, status: BookingStatus = BookingStatus.ACTIVE) {
+    return prisma.booking.findMany({
+      where: { userId, status },
+      include: {
+        bookingTickets: {
+          include: {
+            ticket: {
+              include: {
+                ticketType: {
+                  include: { event: true },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  }
+
   static async canUserManageBooking(userId: number, bookingId: number) {
     const booking = await prisma.booking.findUnique({
       where: { id: bookingId }
@@ -94,26 +138,6 @@ export class BookingService {
     if(!bookingTicket) throw new BookingError(BookingErrorCodes.BOOKING_TICKETS_NOT_FOUND, "Не найдены билеты в бронировании");
 
     return EventService.canUserManageEvent(userId, bookingTicket.ticket.ticketType.eventId);
-  }
-
-  static async getById(id: number) {
-    return prisma.booking.findUnique({
-      where: { id },
-      include: {
-        user: true,
-        bookingTickets: {
-          include: {
-            ticket: {
-              include: {
-                ticketType: {
-                  include: { event: true },
-                },
-              },
-            },
-          },
-        },
-      },
-    });
   }
 
   static async updateStatus(id: number, status: BookingStatus, allowStatusChange: boolean = false) {
