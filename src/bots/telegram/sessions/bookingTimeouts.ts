@@ -1,0 +1,1 @@
+export const bookingTimeouts: Record<string, NodeJS.Timeout> = {};

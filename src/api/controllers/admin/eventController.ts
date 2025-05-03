@@ -1,0 +1,108 @@
+import { Request, Response } from "express";
+import {
+  EventService,
+  getPopularEventsSorted,
+  getEventById as getEventByIdDb,
+  getEventDetailsById,
+  updateEvent,
+  createEvent as createEventDb,
+} from "../../../services/eventService";
+import { z } from "zod";
+import { logAction } from "../../../utils/logAction";
+import { extractQueryOptions, formatEvent } from "../../utils/formatters";
+import { getPrismaIncludeOptions } from "../../utils/formatters/formatEvent";
+
+export async function getAllEvents(req: Request, res: Response) {
+  const { extended, fields } = extractQueryOptions(req);
+
+  const events = await EventService.getAllEvents(getPrismaIncludeOptions({ extended, fields }));
+  res.json(events);
+}
+
+export async function getPopularEvents(req: Request, res: Response) {
+  const events = await getPopularEventsSorted();
+  res.json(events);
+}
+
+export async function getEventById(req: Request, res: Response) {
+  const { qExtended } = req.query;
+  const extended = qExtended === 'true' || qExtended === '1';
+
+  const id = Number(req.params.id);
+  const event = extended ? await getEventDetailsById(id) : await getEventByIdDb(id);
+  if (!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
+  res.json(event);
+}
+
+const updateEventSchema = z.object({
+  name: z.string().min(3),
+  description: z.string().min(10),
+  location: z.string().min(1),
+  startDate: z.string().datetime(),
+  endDate: z.string().datetime(),
+  organizerId: z.coerce.number(),
+  categoryId: z.coerce.number(),
+  subcategoryId: z.coerce.number(),
+});
+
+export async function updateEventById(req: Request, res: Response) {
+  try {
+    const id = parseInt(req.params.id);
+    const validated = updateEventSchema.parse(req.body);
+    
+    const prev = await getEventDetailsById(id);
+    if (!prev) return res.status(404).json({ message: 'Мероприятие не найдено' });
+
+    const updatedEvent = await updateEvent(id, validated);
+
+    await logAction({
+      actorId: req.user?.id || 0,
+      action: 'event.update',
+      targetType: 'event',
+      targetId: id,
+      metadata: {
+        before: prev,
+        after: updatedEvent,
+      }
+    });
+
+    res.json(updatedEvent);
+  } catch (err: any) {
+    console.error("Ошибка при обновлении события:", err);
+
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ message: "Невалидные данные", errors: err.errors });
+    }
+
+    return res.status(500).json({ message: "Внутренняя ошибка сервера" });
+  }
+};
+
+export async function createEvent(req: Request, res: Response) {
+  try {
+    const data = updateEventSchema.parse(req.body); // та же схема подходит
+
+    const created = await createEventDb(data);
+
+    const adminId = req.user?.id;
+    if (adminId) {
+      await logAction({
+        actorId: req.user?.id || 0,
+        action: 'event.create',
+        targetType: 'event',
+        targetId: created.id,
+        metadata: created
+      });
+    }
+
+    res.status(201).json(created);
+  } catch (err: any) {
+    console.error("Ошибка при создании события:", err);
+
+    if (err instanceof z.ZodError) {
+      return res.status(400).json({ message: "Невалидные данные", errors: err.errors });
+    }
+
+    return res.status(500).json({ message: "Внутренняя ошибка сервера" });
+  }
+}

@@ -1,0 +1,202 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 Int      @id @default(autoincrement())
+  telegramId         String?  @unique
+  vkId               String?  @unique
+  email              String?  @unique
+  firstName          String
+  lastName           String
+  phone              String?
+  createdAt          DateTime @default(now())
+
+  bookings           Booking[]
+  admin              Admin?
+  ActionLog          ActionLog[]
+  sourceLinkRequests AccountLinkRequest[] @relation("SourceRequests")
+  targetLinkRequests AccountLinkRequest[] @relation("TargetRequests")
+
+  @@map("users")
+}
+
+model Admin {
+  id           Int    @id @default(autoincrement())
+  userId       Int    @unique
+  role         Role
+  organizerId  Int?
+  createdAt    DateTime @default(now())
+
+  user       User        @relation(fields: [userId], references: [id])
+  organizer  Organizer?  @relation(fields: [organizerId], references: [id])
+
+  @@map("admins")
+}
+
+enum Role {
+  ROOT
+  ADMIN
+  MANAGER
+}
+
+model Organizer {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  contacts    String?
+
+  events      Event[]
+  admins      Admin[]
+
+  @@map("organizers")
+}
+
+model Event {
+  id            Int        @id @default(autoincrement())
+  name          String
+  description   String
+  startDate     DateTime
+  endDate       DateTime
+  location      String
+  posterUrl     String?
+  organizerId   Int
+  categoryId    Int
+  subcategoryId Int
+
+  organizer     Organizer @relation(fields: [organizerId], references: [id])
+  category      Category  @relation(fields: [categoryId], references: [id])
+  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id])
+  ticketTypes   TicketType[]
+
+  @@map("events")
+}
+
+model Category {
+  id          Int           @id @default(autoincrement())
+  name        String
+  subcategories Subcategory[]
+  events      Event[]
+
+  @@map("categories")
+}
+
+
+model Subcategory {
+  id          Int           @id @default(autoincrement())
+  name        String
+  categoryId  Int
+
+  category    Category @relation(fields: [categoryId], references: [id])
+  events      Event[]
+
+  @@map("subcategories")
+}
+
+model TicketType {
+  id        Int      @id @default(autoincrement())
+  eventId   Int
+  name      String
+  price     Decimal
+  quantity  Int
+
+  event     Event    @relation(fields: [eventId], references: [id])
+  tickets   Ticket[]
+
+  @@map("ticket_types")
+}
+
+model Ticket {
+  id             Int      @id @default(autoincrement())
+  ticketTypeId   Int
+  qrCodeUrl      String?
+  qrCodeSecret   String?
+  ownerFirstName String?
+  ownerLastName  String?
+  status         TicketStatus @default(AVAILABLE)
+
+  ticketType     TicketType @relation(fields: [ticketTypeId], references: [id])
+  bookingTickets BookingTicket[]
+
+  @@map("tickets")
+}
+
+enum TicketStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  USED
+}
+
+model Booking {
+  id         Int      @id @default(autoincrement())
+  userId     Int
+  createdAt  DateTime @default(now())
+  status     BookingStatus
+
+  user       User     @relation(fields: [userId], references: [id])
+  bookingTickets BookingTicket[]
+
+  @@map("bookings")
+}
+
+enum BookingStatus {
+  ACTIVE
+  CANCELLED
+  PAID
+}
+
+model BookingTicket {
+  id         Int      @id @default(autoincrement())
+  bookingId  Int
+  ticketId   Int
+
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  ticket     Ticket   @relation(fields: [ticketId], references: [id])
+
+  @@map("booking_tickets")
+}
+
+model ActionLog {
+  id          Int      @id @default(autoincrement())
+  actorId     Int
+  action      String
+  targetType  String
+  targetId    Int
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  actor       User     @relation(fields: [actorId], references: [id])
+
+  @@map("action_logs")
+}
+
+model AccountLinkRequest {
+  id         Int       @id @default(autoincrement())
+  code       String    @unique
+  sourceId   Int
+  targetId   Int?
+  platform   Platform
+  confirmed  Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+
+  source     User      @relation("SourceRequests", fields: [sourceId], references: [id], onDelete: Cascade)
+  target     User?     @relation("TargetRequests", fields: [targetId], references: [id], onDelete: Cascade)
+}
+
+enum Platform {
+  TELEGRAM
+  VK
+}
+

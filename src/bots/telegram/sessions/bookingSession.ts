@@ -1,0 +1,1 @@
+export const bookingSessions: Record<string, { eventId: number; ticketTypeId?: number; ticketsCount?: number; fromPage: number }> = {};

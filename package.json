@@ -1,0 +1,44 @@
+{
+  "name": "ticket-bot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev:api": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/devApiServer.ts",
+    "dev:bot:telegram": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/devTelegramBot.ts",
+    "dev:bot:vk": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/devVkBot.ts",
+    "dev": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate": "prisma migrate dev",
+    "prisma:studio": "prisma studio"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "@prisma/client": "^6.6.0",
+    "@types/express": "^4.17.17",
+    "axios": "^1.9.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^4.18.2",
+    "grammy": "^1.36.1",
+    "jsonwebtoken": "^9.0.2",
+    "middleware-io": "^2.8.1",
+    "prisma": "^6.6.0",
+    "qrcode": "^1.5.4",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3",
+    "vk-io": "^4.9.1",
+    "zod": "^3.24.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/qrcode": "^1.5.5",
+    "ts-node-dev": "^2.0.0",
+    "tsconfig-paths": "^4.2.0"
+  }
+}

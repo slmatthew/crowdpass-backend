@@ -1,0 +1,74 @@
+import { UserService } from "@/services/userService";
+import { Bot, session } from "grammy";
+import {
+  aboutCommand,
+  cancelCommand,
+  eventsCommand,
+  helpCommand,
+  linkCommand,
+  mybookingsCommand,
+  myticketsCommand,
+  supportCommand,
+  startCommand
+} from "./commands";
+import { handleBookingCallbacks } from "./handlers/bookingHandlers";
+import { handleTicketCallbacks } from "./handlers/ticketHandlers";
+import { handleNavigationCallbacks } from "./handlers/navigationHandlers";
+import { handleText } from "./handlers/textHandlers";
+import { SharedContext, SessionData } from "@/types/grammy/SessionData";
+
+const bot = new Bot<SharedContext>(process.env.TELEGRAM_BOT_TOKEN as string);
+
+function initialSession(): SessionData {
+  return { step: null };
+}
+
+/* middleware */
+bot.use(session({ initial: initialSession }));
+bot.use(async (ctx, next) => {
+  const telegramUser = ctx.from;
+  if (!telegramUser) return;
+
+  const user = await UserService.findOrCreateUser({
+    telegramId: telegramUser.id.toString(),
+    firstName: telegramUser.first_name,
+    lastName: telegramUser.last_name ?? "",
+  });
+
+  ctx.sfx = { user };
+
+  await next();
+});
+
+/* commands */
+bot.command('start', startCommand);
+bot.command('help', helpCommand);
+
+bot.command('about', aboutCommand);
+bot.command('support', supportCommand);
+
+bot.command('link', linkCommand);
+
+bot.command('events', eventsCommand);
+bot.command('mytickets', myticketsCommand);
+bot.command('mybookings', mybookingsCommand);
+bot.command('cancel', cancelCommand);
+
+/* callbacks */
+handleBookingCallbacks(bot);
+handleTicketCallbacks(bot);
+handleNavigationCallbacks(bot);
+
+/* text */
+handleText(bot);
+
+bot.catch((err) => {
+  console.error("Ошибка в боте:", err.error);
+});
+
+export function startTelegramBot() {
+  console.log("🚀 Telegram bot running");
+  bot.start();
+}
+
+export { bot as telegram };
