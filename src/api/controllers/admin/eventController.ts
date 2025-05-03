@@ -1,12 +1,5 @@
 import { Request, Response } from "express";
-import {
-  EventService,
-  getPopularEventsSorted,
-  getEventById as getEventByIdDb,
-  getEventDetailsById,
-  updateEvent,
-  createEvent as createEventDb,
-} from "../../../services/eventService";
+import { EventService } from "@/services/eventService";
 import { z } from "zod";
 import { logAction } from "../../../utils/logAction";
 import { extractQueryOptions, formatEvent } from "../../utils/formatters";
@@ -20,7 +13,7 @@ export async function getAllEvents(req: Request, res: Response) {
 }
 
 export async function getPopularEvents(req: Request, res: Response) {
-  const events = await getPopularEventsSorted();
+  const events = await EventService.getPopularEventsSorted();
   res.json(events);
 }
 
@@ -29,7 +22,15 @@ export async function getEventById(req: Request, res: Response) {
   const extended = qExtended === 'true' || qExtended === '1';
 
   const id = Number(req.params.id);
-  const event = extended ? await getEventDetailsById(id) : await getEventByIdDb(id);
+  const event =
+    extended ? await EventService.getEventById(id, {
+			organizer: true,
+			category: true,
+			subcategory: true,
+			ticketTypes: true,
+		})
+    : await EventService.getEventById(id);
+
   if (!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
   res.json(event);
 }
@@ -50,10 +51,10 @@ export async function updateEventById(req: Request, res: Response) {
     const id = parseInt(req.params.id);
     const validated = updateEventSchema.parse(req.body);
     
-    const prev = await getEventDetailsById(id);
+    const prev = await EventService.getEventById(id);
     if (!prev) return res.status(404).json({ message: 'Мероприятие не найдено' });
 
-    const updatedEvent = await updateEvent(id, validated);
+    const updatedEvent = await EventService.updateEvent(id, validated);
 
     await logAction({
       actorId: req.user?.id || 0,
@@ -82,7 +83,7 @@ export async function createEvent(req: Request, res: Response) {
   try {
     const data = updateEventSchema.parse(req.body); // та же схема подходит
 
-    const created = await createEventDb(data);
+    const created = await EventService.createEvent(data);
 
     const adminId = req.user?.id;
     if (adminId) {

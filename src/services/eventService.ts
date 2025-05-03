@@ -2,14 +2,27 @@ import { EventError, EventErrorCodes } from '@/types/errors/EventError';
 import { prisma } from '../db/prisma';
 import { Role } from '@prisma/client';
 
+interface EventExtendedOptions {
+  organizer?: boolean,
+  category?: boolean,
+  subcategory?: boolean,
+  ticketTypes?: boolean,
+}
+
+interface UpdateEventData {
+  name: string;
+  description: string;
+  location: string;
+  startDate: string;
+  endDate: string;
+  organizerId: number;
+  categoryId: number;
+  subcategoryId: number;
+}
+
 export class EventService {
   static async getAllEvents(
-    include: {
-      organizer?: boolean,
-      category?: boolean,
-      subcategory?: boolean,
-      ticketTypes?: boolean,
-    } = {},
+    include: EventExtendedOptions = {},
     orderBy: { startDate?: 'asc' | 'desc' } = { startDate: 'asc' }
   ) {
     return prisma.event.findMany({
@@ -18,10 +31,33 @@ export class EventService {
     });
   }
 
-  static async getEventById(id: number) {
+  static async getEventById(id: number, include: EventExtendedOptions = {}) {
     return prisma.event.findUnique({
       where: { id },
+      include,
     });
+  }
+
+  static async getPopularEventsSorted() {
+    const events = await prisma.event.findMany({
+      include: {
+        ticketTypes: {
+          include: { tickets: true },
+        },
+        organizer: true,
+        category: true,
+      },
+    });
+  
+    return events
+      .map((event) => {
+        const soldCount = event.ticketTypes
+          .flatMap((tt) => tt.tickets)
+          .filter((t) => t.status === 'SOLD').length;
+  
+        return { ...event, soldCount };
+      })
+      .sort((a, b) => b.soldCount - a.soldCount);
   }
 
   static async getEventManagers(id: number, extended: boolean = false) {
@@ -54,97 +90,41 @@ export class EventService {
 
     return false;
   }
-}
 
-export async function getAllEventsWithDetails() {
-	return prisma.event.findMany({
-		include: {
-			organizer: true,
-			category: true,
-			subcategory: true,
-		},
-		orderBy: { startDate: 'asc' },
-	});
-}
-
-export async function getPopularEventsSorted() {
-	const events = await prisma.event.findMany({
-		include: {
-			ticketTypes: {
-				include: { tickets: true },
-			},
-			organizer: true,
-			category: true,
-		},
-	});
-
-	return events
-		.map((event) => {
-			const soldCount = event.ticketTypes
-				.flatMap((tt) => tt.tickets)
-				.filter((t) => t.status === 'SOLD').length;
-
-			return { ...event, soldCount };
-		})
-		.sort((a, b) => b.soldCount - a.soldCount);
+  static async updateEvent(id: number, data: UpdateEventData) {
+    return prisma.event.update({
+      where: { id },
+      data: {
+        name: data.name,
+        description: data.description,
+        location: data.location,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+        organizerId: data.organizerId,
+        categoryId: data.categoryId,
+        subcategoryId: data.subcategoryId,
+      },
+    });
+  };
+  
+  static async createEvent(data: UpdateEventData) {
+    return prisma.event.create({
+      data: {
+        name: data.name,
+        description: data.description,
+        location: data.location,
+        startDate: new Date(data.startDate),
+        endDate: new Date(data.endDate),
+        organizerId: data.organizerId,
+        categoryId: data.categoryId,
+        subcategoryId: data.subcategoryId,
+      },
+    });
+  };
 }
 
 export async function getEventById(id: number) {
   return prisma.event.findUnique({
     where: { id },
-  });
-};
-
-export async function getEventDetailsById(id: number) {
-	return prisma.event.findUnique({
-		where: { id },
-		include: {
-			organizer: true,
-			category: true,
-			subcategory: true,
-			ticketTypes: true,
-		},
-	});
-}
-
-interface UpdateEventData {
-  name: string;
-  description: string;
-  location: string;
-  startDate: string;
-  endDate: string;
-  organizerId: number;
-  categoryId: number;
-  subcategoryId: number;
-}
-
-export async function updateEvent(id: number, data: UpdateEventData) {
-  return prisma.event.update({
-    where: { id },
-    data: {
-      name: data.name,
-      description: data.description,
-      location: data.location,
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
-      organizerId: data.organizerId,
-      categoryId: data.categoryId,
-      subcategoryId: data.subcategoryId,
-    },
-  });
-};
-
-export async function createEvent(data: UpdateEventData) {
-  return prisma.event.create({
-    data: {
-      name: data.name,
-      description: data.description,
-      location: data.location,
-      startDate: new Date(data.startDate),
-      endDate: new Date(data.endDate),
-      organizerId: data.organizerId,
-      categoryId: data.categoryId,
-      subcategoryId: data.subcategoryId,
-    },
   });
 };
