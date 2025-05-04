@@ -168,6 +168,11 @@ export class BookingService {
 
     switch(status) {
       case BookingStatus.ACTIVE:
+        const now = new Date();
+        if(booking.bookingTickets[0].ticket.ticketType.event.endDate <= now) {
+          throw new BookingError(BookingErrorCodes.EVENT_ALREADY_ENDED, "Нельзя забронировать билет на завершившееся мероприятие");
+        }
+
         const actualTickets = await prisma.ticket.findMany({
           where: {
             id: { in: tickets.map(t => t.ticketId) },
