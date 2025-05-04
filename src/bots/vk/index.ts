@@ -104,7 +104,7 @@ export async function startVkBot() {
   });
 
   await vk.updates.start();
-  console.log('[VK BOT] Бот успешно запущен');
+  console.log('🚀 VK bot running');
 }
 
 export { vk };
