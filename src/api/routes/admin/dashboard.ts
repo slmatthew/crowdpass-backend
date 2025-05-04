@@ -1,10 +1,10 @@
 import { Router } from "express";
-import { getCategories, getMe, getOrganizers, getSubcategories, getSummary } from "../../controllers/admin/dashboardController";
+import { dashboardController } from "../../controllers/admin/dashboardController";
 
 const router = Router();
 
-router.get('/summary', getSummary);
-router.get('/me', getMe);
+router.get('/summary', dashboardController.getSummary);
+router.get('/me', dashboardController.getMe);
 
 /**
  * @TODO вынести это все в отдельные специализированные роуты
@@ -14,8 +14,8 @@ router.get('/me', getMe);
  * а фронт должен будет получать данные из этих роутов:
  * /admin/dashboard/metadata/organizers -> /admin/organizers
  */
-router.get('/metadata/organizers', getOrganizers);
-router.get('/metadata/categories', getCategories);
-router.get('/metadata/categories/:categoryId/subcategories', getSubcategories);
+router.get('/metadata/organizers', dashboardController.getOrganizers);
+router.get('/metadata/categories', dashboardController.getCategories);
+router.get('/metadata/categories/:categoryId/subcategories', dashboardController.getSubcategories);
 
 export default router;
