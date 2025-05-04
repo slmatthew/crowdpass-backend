@@ -56,6 +56,8 @@ export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
       await ctx.answerCallbackQuery({ text: "Билет не найден." });
       return;
     }
+
+    if(ctx.chat) await ctx.api.sendChatAction(ctx.chat.id, 'upload_photo');
   
     const qrData = `${process.env.AP_BASE_URI}/validate?secret=${ticket.qrCodeSecret}`;
     const qrImageBuffer = await QRCode.toBuffer(qrData, { type: 'png' });
