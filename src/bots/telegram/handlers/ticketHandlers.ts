@@ -4,6 +4,7 @@ import QRCode from "qrcode";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { EventService } from "@/services/eventService";
 import { TicketService } from "@/services/ticketService";
+import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
 
 export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   bot.callbackQuery(/^back_to_events_(\d+)$/, async (ctx) => {
@@ -64,6 +65,7 @@ export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   
     await ctx.replyWithPhoto(new InputFile(qrImageBuffer), {
       caption: `🎟️ Билет на ${ticket.ticketType.event.name}\nКатегория: ${ticket.ticketType.name}`,
+      ...extraGoToHomeKeyboard
     });
   
     await ctx.answerCallbackQuery();
