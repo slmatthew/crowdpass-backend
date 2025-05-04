@@ -291,8 +291,6 @@ export class BookingService {
     if(!booking) throw new BookingError(BookingErrorCodes.INVALID_BOOKING_ID, "Бронирование не найдено");
     if(booking.status !== BookingStatus.ACTIVE && !byPassStatusCheck) throw new BookingError(BookingErrorCodes.INVALID_BOOKING_STATUS, "Бронирование невозможно оплатить", booking.status);
 
-    console.log(booking.bookingTickets)
-
     await TicketService.updateStatusMany(
       booking.bookingTickets.map(t => t.ticketId),
       TicketStatus.SOLD
