@@ -8,7 +8,7 @@ import { getPrismaIncludeOptions } from "../../utils/formatters/formatEvent";
 export async function getAllEvents(req: Request, res: Response) {
   const { extended, fields } = extractQueryOptions(req);
 
-  const events = await EventService.getAllEvents(getPrismaIncludeOptions({ extended, fields }));
+  const events = await EventService.getAllEvents(false, getPrismaIncludeOptions({ extended, fields }));
   res.json(events);
 }
 

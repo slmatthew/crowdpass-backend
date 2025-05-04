@@ -242,8 +242,14 @@ export class BookingService {
 
     const ticketType = await prisma.ticketType.findUnique({
       where: { id: ticketTypeId },
+      include: { event: true }
     });
     if(!ticketType) throw new BookingError(BookingErrorCodes.TICKET_TYPE_NOT_FOUND, "Тип билета не найден");
+
+    const now = new Date();
+    if(ticketType.event.endDate <= now) {
+      throw new BookingError(BookingErrorCodes.EVENT_ALREADY_ENDED, "Нельзя забронировать билет на завершившееся мероприятие");
+    }
 
     const availableTickets = await prisma.ticket.findMany({
       where: {

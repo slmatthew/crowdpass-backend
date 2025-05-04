@@ -22,10 +22,14 @@ interface UpdateEventData {
 
 export class EventService {
   static async getAllEvents(
+    upcoming: boolean = true,
     include: EventExtendedOptions = {},
-    orderBy: { startDate?: 'asc' | 'desc' } = { startDate: 'asc' }
+    orderBy: { startDate?: 'asc' | 'desc' } = { startDate: 'asc' },
   ) {
+    const where = upcoming ? { endDate: { gte: new Date() } } : {};
+
     return prisma.event.findMany({
+      where,
       include,
       orderBy,
     });
