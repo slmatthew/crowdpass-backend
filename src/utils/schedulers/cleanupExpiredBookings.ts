@@ -63,20 +63,22 @@ export function scheduleExpiredBookingCleanup() {
         .join("\n")}`;
 
       try {
-        if (booking.user.telegramId) {
+        let telegramSent = false;
+        if(booking.user.telegramId) {
           MessageQueueService.enqueue({
             platform: "telegram",
             recipientId: booking.user.telegramId,
             text: message,
-          });          
+          });
+          telegramSent = true;
         }
 
-        if (booking.user.vkId) {
+        if(booking.user.vkId && !telegramSent) {
           MessageQueueService.enqueue({
             platform: "vk",
             recipientId: booking.user.vkId,
             text: message,
-          });          
+          });
         }
       } catch (err) {
         console.error(

@@ -37,6 +37,6 @@ export class MessageQueueService {
       } catch (err) {
         console.error(`[MessageQueue][${item.platform}] Failed to send to ${item.recipientId}`, err);
       }
-    }, 150); // 6–7 сообщений в секунду (можно повысить, если нужно)
+    }, 150); // 6–7 msg per second
   }
 }
