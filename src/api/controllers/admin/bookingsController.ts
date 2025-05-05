@@ -47,7 +47,7 @@ export async function updateBookingStatus(req: Request, res: Response) {
     getBookingById(req, res);
   } catch(err) {
     if (err instanceof BookingError) {
-      console.error(`[updateBookingStatus/${err.code}] ${err.message}`, err.metadata);
+      // console.error(`[updateBookingStatus/${err.code}] ${err.message}`, err.metadata);
       return res.status(400).json({ message: err.message });
     }
 
