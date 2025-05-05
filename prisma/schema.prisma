@@ -84,23 +84,27 @@ model Event {
 }
 
 model Category {
-  id          Int           @id @default(autoincrement())
-  name        String
-  subcategories Subcategory[]
-  events      Event[]
+  id           Int           @id @default(autoincrement())
+  name         String
+  isDeleted    Boolean       @default(false)
 
+  subcategories Subcategory[]
+  events        Event[]
+
+  @@unique([name, isDeleted])
   @@map("categories")
 }
 
-
 model Subcategory {
-  id          Int           @id @default(autoincrement())
-  name        String
-  categoryId  Int
+  id           Int           @id @default(autoincrement())
+  name         String
+  categoryId   Int
+  isDeleted    Boolean       @default(false)
 
-  category    Category @relation(fields: [categoryId], references: [id])
-  events      Event[]
+  category     Category @relation(fields: [categoryId], references: [id])
+  events       Event[]
 
+  @@unique([name, categoryId, isDeleted])
   @@map("subcategories")
 }
 

@@ -23,6 +23,7 @@ import adminEventsRoutes from './routes/admin/events';
 import adminDashboardRoutes from './routes/admin/dashboard';
 import adminLogsRoutes from './routes/admin/logs';
 import adminBookingsRoutes from './routes/admin/bookings';
+import adminCategoriesRoutes from './routes/admin/categories';
 
 import mainInternalRoutes from './routes/internal/main';
 
@@ -37,6 +38,7 @@ app.use('/api/admin/events', authAdmin, adminEventsRoutes);
 app.use('/api/admin/dashboard', authAdmin, adminDashboardRoutes);
 app.use('/api/admin/logs', authAdmin, adminLogsRoutes);
 app.use('/api/admin/bookings', authAdmin, adminBookingsRoutes);
+app.use('/api/admin/', authAdmin, adminCategoriesRoutes);
 
 app.use('/api/internal', mainInternalRoutes);
 
