@@ -4,7 +4,7 @@ import { CategoryService } from "@/services/categoryService";
 // === CATEGORY ===
 
 export async function getAllCategories(req: Request, res: Response) {
-  const includeSubcategories = req.query.subcategories === "true";
+  const includeSubcategories = req.query.subcategories === "true" || req.query.subcategories === "1";
   const categories = await CategoryService.getAllCategories(includeSubcategories);
   res.json(categories);
 }
@@ -14,12 +14,6 @@ export async function getCategory(req: Request, res: Response) {
   const category = await CategoryService.getCategoryById(id, true);
   if (!category) return res.status(404).json({ error: "Категория не найдена" });
   res.json(category);
-}
-
-export async function getSubcategoriesByCategoryId(req: Request, res: Response) {
-  const id = Number(req.params.id);
-  const subcategories = await CategoryService.getSubcategoriesByCategoryId(id);
-  res.json(subcategories);
 }
 
 export async function createCategory(req: Request, res: Response) {
@@ -53,6 +47,17 @@ export async function getSubcategory(req: Request, res: Response) {
   const subcategory = await CategoryService.getSubcategoryById(id, true);
   if (!subcategory) return res.status(404).json({ error: "Подкатегория не найдена" });
   res.json(subcategory);
+}
+
+export async function getSubcategoriesByCategoryId(req: Request, res: Response) {
+  const id = Number(req.params.id);
+  const subcategories = await CategoryService.getSubcategoriesByCategoryId(id);
+  res.json(subcategories);
+}
+
+export async function getLostSubcategories(req: Request, res: Response) {
+  const subcategories = await CategoryService.getLostSubcategories();
+  res.json(subcategories);
 }
 
 export async function createSubcategory(req: Request, res: Response) {

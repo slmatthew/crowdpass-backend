@@ -1,4 +1,5 @@
 import { prisma } from "@/db/prisma";
+import { CategoryError, CategoryErrorCodes } from "@/types/errors/CategoryError";
 
 export class CategoryService {
   static isNotDeletedOption = { where: { isDeleted: false } };
@@ -51,6 +52,20 @@ export class CategoryService {
     });
   }
 
+  static async getLostSubcategories(take?: number, skip?: number, order: 'asc' | 'desc' = 'asc') {
+    return prisma.subcategory.findMany({
+      where: {
+        isDeleted: false,
+        category: {
+          isDeleted: true,
+        },
+      },
+      include: {
+        category: true,
+      },
+    });
+  }
+
   // === CREATE ===
 
   static async createCategory(name: string) {
@@ -83,16 +98,32 @@ export class CategoryService {
   // === SOFT DELETE ===
 
   static async deleteCategory(id: number) {
+    const category = await prisma.category.findUnique({ where: { id } });
+
+    if(!category) throw new CategoryError(CategoryErrorCodes.CATEGORY_NOT_FOUND, "Указанной категории не существует");
+    if(category.isDeleted) throw new CategoryError(CategoryErrorCodes.CATEGORY_SOFT_DELETED, "Категория уже удалена");
+
     return prisma.category.update({
       where: { id },
-      data: { isDeleted: true },
+      data: {
+        name: `${category.name} ${id}`,
+        isDeleted: true
+      },
     });
   }
 
   static async deleteSubcategory(id: number) {
+    const subcategory = await prisma.subcategory.findUnique({ where: { id } });
+
+    if(!subcategory) throw new CategoryError(CategoryErrorCodes.CATEGORY_NOT_FOUND, "Указанной подкатегории не существует");
+    if(subcategory.isDeleted) throw new CategoryError(CategoryErrorCodes.CATEGORY_SOFT_DELETED, "Подкатегория уже удалена");
+
     return prisma.subcategory.update({
       where: { id },
-      data: { isDeleted: true },
+      data: {
+        name: `${subcategory.name} ${id}`,
+        isDeleted: true
+      },
     });
   }
 

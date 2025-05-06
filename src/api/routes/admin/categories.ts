@@ -11,6 +11,7 @@ router.patch("/categories/:id", controller.updateCategory);
 router.delete("/categories/:id", controller.deleteCategory);
 
 router.get("/subcategories", controller.getAllSubcategories);
+router.get("/subcategories/lost", controller.getLostSubcategories);
 router.get("/subcategories/:id", controller.getSubcategory);
 router.post("/subcategories", controller.createSubcategory);
 router.patch("/subcategories/:id", controller.updateSubcategory);
