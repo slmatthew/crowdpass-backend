@@ -1,9 +1,8 @@
 import jwt from "jsonwebtoken";
 
 export interface TokenData {
-  id: number;    // user id
-  role: string;  // user role
-  oid?: number;  // user organizer id
+  id: number;
+  adm?: number;
   iat?: number;
   iss?: string;
   aud?: string;
@@ -15,11 +14,10 @@ export function signToken(
 ): string {
   const tokenData : TokenData = {
     id: data.id,
-    role: data.role,
-    oid: data.oid,
+    adm: data.adm,
     iat: Math.floor(Date.now() / 1000),
     iss: data.iss || 'crowdpass',
-    aud: data.aud || 'web-panel',
+    aud: data.aud || 'unknown',
   };
 
   return jwt.sign(

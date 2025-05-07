@@ -1,8 +1,8 @@
+import { UserService } from "@/services/userService";
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { AuthRequest } from "./authAdmin";
 
-export function authUser(req: AuthRequest, res: Response, next: NextFunction) {
+export async function authUser(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -14,14 +14,13 @@ export function authUser(req: AuthRequest, res: Response, next: NextFunction) {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: number; role: string };
 
-    if (!["USER"].includes(decoded.role)) {
+    const user = await UserService.findUserById(decoded.id);
+
+    if (!user) {
       return res.status(403).json({ message: "Недостаточно прав для пользовательского API." });
     }
 
-    req.user = {
-      id: decoded.id,
-      role: decoded.role,
-    };
+    req.user = user;
 
     next();
   } catch (error) {

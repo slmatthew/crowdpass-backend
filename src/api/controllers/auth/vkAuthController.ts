@@ -57,8 +57,8 @@ export async function vkCallback(req: Request, res: Response) {
 
     const token = signToken({
       id: user.id,
-      role: user.admin.role,
-      oid: user.admin.organizerId || undefined
+      adm: user.admin.id,
+      aud: 'web-panel',
     });
 
     await logAction({

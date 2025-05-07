@@ -1,15 +1,9 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { TokenData } from "../utils/signToken";
+import { UserService } from "@/services/userService";
 
-export interface AuthRequest extends Request {
-  user?: {
-    id: number;
-    role: string;
-  };
-}
-
-export function authPublic(req: AuthRequest, res: Response, next: NextFunction) {
+export async function authPublic(req: Request, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -21,11 +15,13 @@ export function authPublic(req: AuthRequest, res: Response, next: NextFunction) 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as TokenData;
 
-    if (!["ROOT", "ADMIN", "MANAGER", "USER"].includes(decoded.role)) {
+    const user = await UserService.findUserById(decoded.id);
+
+    if (!user || (!!user && !user.admin)) {
       return res.status(403).json({ message: "Недостаточно прав." });
     }
 
-    req.user = decoded;
+    req.user = user;
 
     next();
   } catch (error) {
