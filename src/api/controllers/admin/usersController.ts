@@ -1,6 +1,42 @@
 import { formatUser } from "@/api/utils/formatters";
 import { UserService } from "@/services/userService";
+import { Role } from "@prisma/client";
 import { Request, Response } from "express";
+
+export async function getUsers(req: Request, res: Response) {
+  const { search, page = "1", pageSize = "20" } = req.query;
+
+  const result = await UserService.getUsers({
+    search: search as string | undefined,
+    page: Number(page),
+    pageSize: Number(pageSize),
+  });
+
+  res.json(result);
+}
+
+export async function promoteToAdmin(req: Request, res: Response) {
+  const userId = Number(req.params.id);
+  const { role, organizerId } = req.body;
+
+  if(req.user?.role !== Role.ROOT) {
+    return res.status(403).json({ message: "Вы не можете выполнить эту операцию" });
+  }
+
+  const admin = await UserService.promoteToAdmin(userId, role, organizerId);
+  res.status(201).json(admin);
+}
+
+export async function demoteAdmin(req: Request, res: Response) {
+  const userId = Number(req.params.id);
+
+  if(req.user?.role !== Role.ROOT) {
+    return res.status(403).json({ message: "Вы не можете выполнить эту операцию" });
+  }
+
+  await UserService.demoteAdmin(userId);
+  res.status(204).send();
+}
 
 export async function getUserById(req: Request, res: Response) {
   const id = Number(req.params.id);
@@ -14,10 +50,15 @@ export async function getUserById(req: Request, res: Response) {
 }
 
 export async function changePlatformId(req: Request, res: Response) {
-  const { userId, targetPlatform, targetId } = req.body;
+  const userId = Number(req.params.id);
+  const { targetPlatform, targetId } = req.body;
 
   if (!userId || !targetPlatform || !targetId) {
     return res.status(400).json({ message: "Параметры не указаны" });
+  }
+
+  if(req.user?.role !== Role.ADMIN && req.user?.role !== Role.ROOT) {
+    return res.status(403).json({ message: "Вы не можете выполнить эту операцию" });
   }
 
   try {

@@ -1,4 +1,4 @@
-import { Platform } from "@prisma/client";
+import { Platform, Role } from "@prisma/client";
 import { prisma } from "../db/prisma";
 import { randomUUID } from "crypto";
 import { UserError, UserErrorCodes } from "@/types/errors/UserError";
@@ -40,6 +40,59 @@ export class UserService {
     const include = includeAdmin ? { admin: true } : {};
 
     return prisma.user.findUnique({ where, include });
+  }
+
+  static async getUsers({
+    search,
+    page = 1,
+    pageSize = 20,
+  }: {
+    search?: string;
+    page?: number;
+    pageSize?: number;
+  }) {
+    const skip = (page - 1) * pageSize;
+
+    const where = search
+      ? {
+          OR: [
+            { id: Number(search).toString() === search ? Number(search) : -1 },
+            { telegramId: search },
+            { vkId: search },
+            { email: { contains: search, mode: "insensitive" as const } },
+            { phone: { contains: search, mode: "insensitive" as const } },
+            { firstName: { contains: search, mode: "insensitive" as const } },
+            { lastName: { contains: search, mode: "insensitive" as const } },
+          ],
+        }
+      : {};
+
+    const [items, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        include: { admin: true },
+        skip,
+        take: pageSize,
+        orderBy: { createdAt: "desc" },
+      }),
+      prisma.user.count({ where }),
+    ]);
+
+    return { items, total };
+  }
+
+  static async promoteToAdmin(userId: number, role: "ADMIN" | "MANAGER", organizerId?: number) {
+    const realOrganizerId = role === Role.ADMIN ? null : organizerId;
+
+    return prisma.admin.create({
+      data: { userId, role, organizerId: realOrganizerId },
+    });
+  }
+
+  static async demoteAdmin(userId: number) {
+    return prisma.admin.delete({
+      where: { userId },
+    });
   }
 
   static async forceUpdatePlatformId(userId: number, targetPlatform: Platform, targetId: string) {
