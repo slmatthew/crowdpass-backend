@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { CategoryService } from "@/services/categoryService";
+import { privileges } from "@/api/utils/privileges";
 
 // === CATEGORY ===
 
@@ -17,12 +18,16 @@ export async function getCategory(req: Request, res: Response) {
 }
 
 export async function createCategory(req: Request, res: Response) {
+  if(!privileges.categories.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+
   const { name } = req.body;
   const category = await CategoryService.createCategory(name);
   res.status(201).json(category);
 }
 
 export async function updateCategory(req: Request, res: Response) {
+  if(!privileges.categories.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+
   const id = Number(req.params.id);
   const { name } = req.body;
   const updated = await CategoryService.updateCategory(id, name);
@@ -30,6 +35,8 @@ export async function updateCategory(req: Request, res: Response) {
 }
 
 export async function deleteCategory(req: Request, res: Response) {
+  if(!privileges.categories.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+
   const id = Number(req.params.id);
   const deleted = await CategoryService.deleteCategory(id);
   res.json(deleted);
@@ -61,12 +68,16 @@ export async function getLostSubcategories(req: Request, res: Response) {
 }
 
 export async function createSubcategory(req: Request, res: Response) {
+  if(!privileges.categories.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+
   const { name, categoryId } = req.body;
   const subcategory = await CategoryService.createSubcategory(name, categoryId);
   res.status(201).json(subcategory);
 }
 
 export async function updateSubcategory(req: Request, res: Response) {
+  if(!privileges.categories.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+
   const id = Number(req.params.id);
   const { name, categoryId } = req.body;
   const updated = await CategoryService.updateSubcategory(id, name, categoryId);
@@ -74,6 +85,8 @@ export async function updateSubcategory(req: Request, res: Response) {
 }
 
 export async function deleteSubcategory(req: Request, res: Response) {
+  if(!privileges.categories.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+
   const id = Number(req.params.id);
   const deleted = await CategoryService.deleteSubcategory(id);
   res.json(deleted);
