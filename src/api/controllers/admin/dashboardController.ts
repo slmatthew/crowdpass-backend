@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../../../db/prisma";
 import { UserService } from "../../../services/userService";
 import { AdminDashboardService } from "../../../services/adminDashboardService";
-import { getAdminAvailableOrganizers } from "../../../services/organizerService";
+import { OrganizerService } from "../../../services/organizerService";
 
 export const dashboardController = {
   async getSummary(req: Request, res: Response) {
@@ -42,12 +42,12 @@ export const dashboardController = {
   
       const organizerId = user?.admin?.organizerId;
       if(organizerId) {
-        const organizers = await getAdminAvailableOrganizers(organizerId);
+        const organizers = await OrganizerService.getAdminAvailableOrganizers(organizerId);
         return res.json(organizers);
       }
     }
   
-    const organizers = await getAdminAvailableOrganizers();
+    const organizers = await OrganizerService.getAdminAvailableOrganizers();
     res.json(organizers);
   },
   async getCategories(req: Request, res: Response) {

@@ -7,10 +7,12 @@ import logsRoutes from '@api/routes/admin/logs';
 import bookingsRoutes from '@api/routes/admin/bookings';
 import categoriesRoutes from '@api/routes/admin/categories';
 import usersRoutes from '@api/routes/admin/users';
+import organizersRoutes from '@api/routes/admin/organizers';
 
 const router = Router();
 
 router.use('/admin/', authAdmin, categoriesRoutes);
+router.use('/admin/organizers', authAdmin, organizersRoutes);
 router.use('/admin/dashboard', authAdmin, dashboardRoutes);
 router.use('/admin/events', authAdmin, eventsRoutes);
 router.use('/admin/bookings', authAdmin, bookingsRoutes);

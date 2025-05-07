@@ -1,6 +1,6 @@
 import { Organizer } from "@prisma/client";
 import { FormatOptions } from "./formatOptions";
-import { getOrganizerAdmins } from "../../../services/organizerService";
+import { OrganizerService } from "../../../services/organizerService";
 
 export interface OrganizerFormat extends Organizer {
   admins?: number[];
@@ -17,7 +17,7 @@ export async function formatOrganizer(organizer: Organizer, options: FormatOptio
   };
 
   if(extended && fields.includes("admins")) {
-    const admins = await getOrganizerAdmins(organizer.id);
+    const admins = await OrganizerService.getOrganizerAdmins(organizer.id);
     result.admins = admins.map(admin => admin.userId);
   }
 
