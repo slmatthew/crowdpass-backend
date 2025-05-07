@@ -33,6 +33,8 @@ export async function demoteAdmin(req: Request, res: Response) {
 
   const userId = Number(req.params.id);
 
+  if(userId === req.user?.id) return res.status(400).json({ message: "Нельзя разжаловать себя" });
+
   await UserService.demoteAdmin(userId);
   res.status(204).send();
 }
