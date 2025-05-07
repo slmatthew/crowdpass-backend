@@ -45,7 +45,7 @@ export class CategoryService {
 
   static async getSubcategoriesByCategoryId(categoryId: number, take?: number, skip?: number, order: 'asc' | 'desc' = 'asc') {
     return prisma.subcategory.findMany({
-      where: { categoryId },
+      where: { categoryId, isDeleted: false },
       take,
       skip,
       orderBy: { id: order },
