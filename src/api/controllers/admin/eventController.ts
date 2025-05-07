@@ -4,6 +4,7 @@ import { z } from "zod";
 import { logAction } from "../../../utils/logAction";
 import { extractQueryOptions, formatEvent } from "../../utils/formatters";
 import { getPrismaIncludeOptions } from "../../utils/formatters/formatEvent";
+import { privileges } from "@/api/utils/privileges";
 
 export async function getAllEvents(req: Request, res: Response) {
   const { extended, fields } = extractQueryOptions(req);
@@ -49,6 +50,8 @@ const updateEventSchema = z.object({
 export async function updateEventById(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
+    if(!privileges.events.update(req.user!, id)) return res.status(403).json({ message: "Нет доступа" });
+
     const validated = updateEventSchema.parse(req.body);
     
     const prev = await EventService.getEventById(id);
@@ -82,6 +85,8 @@ export async function updateEventById(req: Request, res: Response) {
 export async function createEvent(req: Request, res: Response) {
   try {
     const data = updateEventSchema.parse(req.body); // та же схема подходит
+
+    if(!privileges.events.create(req.user!, data.organizerId)) return res.status(403).json({ message: "Нет доступа" }); 
 
     const created = await EventService.createEvent(data);
 

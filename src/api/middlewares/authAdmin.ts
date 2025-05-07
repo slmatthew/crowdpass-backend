@@ -27,6 +27,7 @@ export async function authAdmin(req: Request, res: Response, next: NextFunction)
     }
 
     req.user = user;
+    req.admin = user.admin;
 
     next();
   } catch (error) {

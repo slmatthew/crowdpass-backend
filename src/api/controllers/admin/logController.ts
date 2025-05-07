@@ -1,8 +1,11 @@
 import { Request, Response } from 'express';
 import { prisma } from '../../../db/prisma';
 import { AdminDashboardService, LogFilters } from '@/services/adminDashboardService';
+import { privileges } from '@/api/utils/privileges';
 
 export async function getLogs(req: Request, res: Response) {
+  if(!privileges.logs.get(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+
   const {
     actorId,
     action,

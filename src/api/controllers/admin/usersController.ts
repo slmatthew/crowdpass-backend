@@ -1,9 +1,12 @@
 import { formatUser } from "@/api/utils/formatters";
+import { privileges } from "@/api/utils/privileges";
 import { UserService } from "@/services/userService";
 import { Role } from "@prisma/client";
 import { Request, Response } from "express";
 
 export async function getUsers(req: Request, res: Response) {
+  if(!privileges.users.get(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+  
   const { search, page = "1", pageSize = "20" } = req.query;
 
   const result = await UserService.getUsers({
@@ -16,23 +19,19 @@ export async function getUsers(req: Request, res: Response) {
 }
 
 export async function promoteToAdmin(req: Request, res: Response) {
+  if(!privileges.users.adminManage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+
   const userId = Number(req.params.id);
   const { role, organizerId } = req.body;
-
-  if(req.user?.role !== Role.ROOT) {
-    return res.status(403).json({ message: "Вы не можете выполнить эту операцию" });
-  }
 
   const admin = await UserService.promoteToAdmin(userId, role, organizerId);
   res.status(201).json(admin);
 }
 
 export async function demoteAdmin(req: Request, res: Response) {
-  const userId = Number(req.params.id);
+  if(!privileges.users.adminManage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
 
-  if(req.user?.role !== Role.ROOT) {
-    return res.status(403).json({ message: "Вы не можете выполнить эту операцию" });
-  }
+  const userId = Number(req.params.id);
 
   await UserService.demoteAdmin(userId);
   res.status(204).send();
@@ -50,15 +49,13 @@ export async function getUserById(req: Request, res: Response) {
 }
 
 export async function changePlatformId(req: Request, res: Response) {
+  if(!privileges.users.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+
   const userId = Number(req.params.id);
   const { targetPlatform, targetId } = req.body;
 
   if (!userId || !targetPlatform || !targetId) {
     return res.status(400).json({ message: "Параметры не указаны" });
-  }
-
-  if(req.user?.role !== Role.ADMIN && req.user?.role !== Role.ROOT) {
-    return res.status(403).json({ message: "Вы не можете выполнить эту операцию" });
   }
 
   try {

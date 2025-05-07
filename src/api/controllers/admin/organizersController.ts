@@ -24,13 +24,14 @@ export async function getMyOrganizer(req: Request, res: Response) {
 }
 
 export async function getAvailableOrganizers(req: Request, res: Response) {
-  if(req.user?.role === 'MANAGER') {
+  if(!req.user || !req.admin) return res.status(403).json({ message: "Нет доступа" });
+
+  if(req.admin.role === 'MANAGER') {
     const user = await UserService.findUserById(req.user.id);
 
-    const organizerId = user?.admin?.organizerId;
-    if(!organizerId) return res.status(400).json({ message: "Вы не прикреплены к организатору, обратитесь к вышестоящим админам" });
+    if(!req.admin.organizerId) return res.status(400).json({ message: "Вы не прикреплены к организатору, обратитесь к вышестоящим админам" });
 
-    const organizers = await OrganizerService.getAdminAvailableOrganizers(organizerId);
+    const organizers = await OrganizerService.getAdminAvailableOrganizers(req.admin.organizerId);
     return res.json(organizers);
   }
 
