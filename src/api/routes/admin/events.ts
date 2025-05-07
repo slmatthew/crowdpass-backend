@@ -5,6 +5,7 @@ import {
 	getEventById,
 	updateEventById,
 	createEvent,
+	getEventOverview,
 } from "../../controllers/admin/eventController";
 
 const router = Router();
@@ -12,6 +13,7 @@ const router = Router();
 router.get("/", getAllEvents);
 router.get("/popular", getPopularEvents);
 router.get("/:id", getEventById);
+router.get("/:id/overview", getEventOverview);
 
 router.patch('/:id', updateEventById);
 

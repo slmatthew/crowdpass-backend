@@ -41,6 +41,22 @@ export class EventService {
       include,
     });
   }
+  
+  static async getEventOverview(id: number) {
+    return prisma.event.findUnique({
+      where: { id },
+      include: {
+        organizer: true,
+        category: true,
+        subcategory: true,
+        ticketTypes: {
+          include: {
+            tickets: true
+          }
+        }
+      },
+    });
+  }
 
   static async getPopularEventsSorted() {
     const events = await prisma.event.findMany({
