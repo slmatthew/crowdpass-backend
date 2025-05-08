@@ -38,49 +38,14 @@ export async function getEventById(req: Request, res: Response) {
 
 export async function getEventOverview(req: Request, res: Response) {
   const id = Number(req.params.id);
-
-  if(!privileges.events.update(req.user!, id)) return res.status(403).json({ message: "Нет доступа" });
-
-  const event = await EventService.getEventOverview(id);
-  if(!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
-
-  let total = 0, available = 0, reserved = 0, sold = 0, used = 0;
-  
-  for (const type of event.ticketTypes) {
-    for (const ticket of type.tickets) {
-      total++;
-      switch (ticket.status) {
-        case "AVAILABLE":
-          available++;
-          break;
-        case "RESERVED":
-          reserved++;
-          break;
-        case "SOLD":
-          sold++;
-          break;
-        case "USED":
-          used++;
-          break;
-      }
-    }
+  if (!privileges.events.update(req.user!, id)) {
+    return res.status(403).json({ message: "Нет доступа" });
   }
 
-  const fEvent = await formatEvent(event, {
-    extended: true,
-    fields: ['organizer', 'category', 'subcategory', 'ticketTypes'],
-  });
+  const event = await EventService.getEventOverview(id);
+  if (!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
 
-  res.json({
-    ...fEvent,
-    stats: {
-      totalTickets: total,
-      availableTickets: available,
-      reservedTickets: reserved,
-      soldTickets: sold,
-      usedTickets: used,
-    },
-  });
+  res.json(event);
 }
 
 const updateEventSchema = z.object({
