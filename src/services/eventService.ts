@@ -1,6 +1,6 @@
 import { EventError, EventErrorCodes } from '@/types/errors/EventError';
 import { prisma } from '../db/prisma';
-import { Role } from '@prisma/client';
+import { Admin, Event, Role } from '@prisma/client';
 
 interface EventExtendedOptions {
   organizer?: boolean,
@@ -21,6 +21,16 @@ interface UpdateEventData {
 }
 
 export class EventService {
+  static LcanUserManageEvent(admin?: Admin, event?: Event) {
+    if(!event) throw new EventError(EventErrorCodes.EVENT_NOT_FOUND, 'Мероприятие не найдено');
+
+    if(!admin) return false;
+    if(admin.role === Role.ROOT || admin.role === Role.ADMIN) return true;
+    if(admin.role === Role.MANAGER && admin.organizerId === event.organizerId) return true;
+
+    return false;
+  }
+
   static async getAllEvents(
     upcoming: boolean = true,
     include: EventExtendedOptions = {},
@@ -41,22 +51,94 @@ export class EventService {
       include,
     });
   }
-  
+
   static async getEventOverview(id: number) {
-    return prisma.event.findUnique({
+    const event = await prisma.event.findUnique({
       where: { id },
       include: {
         organizer: true,
         category: true,
         subcategory: true,
-        ticketTypes: {
-          include: {
-            tickets: true
-          }
-        }
+        ticketTypes: true,
       },
     });
-  }
+  
+    if (!event) return null;
+  
+    const ticketStats = await prisma.ticket.groupBy({
+      by: ['ticketTypeId', 'status'],
+      where: {
+        ticketType: { eventId: id },
+      },
+      _count: { _all: true },
+    });
+  
+    const ticketTypeStats: Record<number, any> = {};
+    for (const type of event.ticketTypes) {
+      ticketTypeStats[type.id] = {
+        totalTickets: 0,
+        availableTickets: 0,
+        reservedTickets: 0,
+        soldTickets: 0,
+        usedTickets: 0,
+      };
+    }
+  
+    for (const stat of ticketStats) {
+      const entry = ticketTypeStats[stat.ticketTypeId];
+      entry.totalTickets += stat._count._all;
+  
+      switch (stat.status) {
+        case 'AVAILABLE':
+          entry.availableTickets += stat._count._all;
+          break;
+        case 'RESERVED':
+          entry.reservedTickets += stat._count._all;
+          break;
+        case 'SOLD':
+          entry.soldTickets += stat._count._all;
+          break;
+        case 'USED':
+          entry.usedTickets += stat._count._all;
+          break;
+      }
+    }
+  
+    const ticketTypesWithStats = event.ticketTypes.map((type) => ({
+      ...type,
+      stats: ticketTypeStats[type.id] || {
+        totalTickets: 0,
+        availableTickets: 0,
+        reservedTickets: 0,
+        soldTickets: 0,
+        usedTickets: 0,
+      },
+    }));
+  
+    const stats = Object.values(ticketTypeStats).reduce(
+      (acc, stat) => {
+        acc.totalTickets += stat.totalTickets;
+        acc.availableTickets += stat.availableTickets;
+        acc.reservedTickets += stat.reservedTickets;
+        acc.soldTickets += stat.soldTickets;
+        acc.usedTickets += stat.usedTickets;
+        return acc;
+      },
+      {
+        totalTickets: 0,
+        availableTickets: 0,
+        reservedTickets: 0,
+        soldTickets: 0,
+        usedTickets: 0,
+      }
+    );
+  
+    return {
+      ...event,
+      ticketTypes: ticketTypesWithStats,
+      stats,
+    };
+  }  
 
   static async getPopularEventsSorted() {
     const events = await prisma.event.findMany({
@@ -97,18 +179,13 @@ export class EventService {
   static async canUserManageEvent(userId: number, eventId: number) {
     const event = await prisma.event.findUnique({
       where: { id: eventId },
-    });
-    if(!event) throw new EventError(EventErrorCodes.EVENT_NOT_FOUND, 'Мероприятие не найдено');
+    }) ?? undefined;
 
     const admin = await prisma.admin.findUnique({
       where: { userId },
-    });
+    }) ?? undefined;
 
-    if(!admin) return false;
-    if(admin.role === Role.ROOT || admin.role === Role.ADMIN) return true;
-    if(admin.role === Role.MANAGER && admin.organizerId === event.organizerId) return true;
-
-    return false;
+    return this.LcanUserManageEvent(admin, event);
   }
 
   static async updateEvent(id: number, data: UpdateEventData) {
