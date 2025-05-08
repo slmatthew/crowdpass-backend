@@ -1,4 +1,5 @@
 import { EventService } from "@/services/eventService";
+import { TicketTypeService } from "@/services/ticketTypeService";
 import { Admin, User } from "@prisma/client";
 
 type UserAdmin = User & { admin?: Admin };
@@ -20,6 +21,13 @@ export const privileges = {
      * @returns 
      */
     manage: rolesRootOrAdmin,
+  },
+  tickets: {
+  },
+  ticketTypes: {
+    manage: async (user: UserAdmin, ticketTypeId?: number, eventId?: number): Promise<Boolean> => {
+      return await TicketTypeService.canUserManage(user.id, ticketTypeId, eventId);
+    }
   },
   events: {
     create: (user: UserAdmin, organizerId: number): boolean => {
