@@ -1,5 +1,5 @@
 import { CommandContext } from "grammy";
-import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
+import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { bookingSessions } from "../sessions/bookingSession";
 import { SharedContext } from "@/types/grammy/SessionData";
 

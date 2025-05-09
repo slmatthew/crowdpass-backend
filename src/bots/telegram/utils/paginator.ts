@@ -2,7 +2,7 @@ import { CallbackQueryContext, CommandContext, Context, InlineKeyboard } from "g
 import { SharedContext } from "@/types/grammy/SessionData";
 import { EventService } from "@/services/eventService";
 import { BookingService } from "@/services/bookingService";
-import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
+import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { PAGE_SIZE } from "@/constants/appConstants";
 import { callbackPayloads } from "./callbackPayloads";
 import { CallbackAction } from "../constants/callbackActions";

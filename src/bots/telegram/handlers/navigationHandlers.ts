@@ -1,6 +1,6 @@
 import { Api, Bot, InlineKeyboard, RawApi } from "grammy";
 import { sendBookingsPage, sendEventsPage } from "../utils/paginator";
-import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
+import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { BookingService } from "@/services/bookingService";
 import { BookingStatus } from "@prisma/client";

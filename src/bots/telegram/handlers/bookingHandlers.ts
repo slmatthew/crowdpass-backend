@@ -1,5 +1,5 @@
 import { Api, Bot, Context, InlineKeyboard, RawApi } from "grammy";
-import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
+import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { bookingSessions } from "../sessions/bookingSession";
 import { sendBookingsPage } from "../utils/paginator";
 import { bookingTimeouts } from "../sessions/bookingTimeouts";

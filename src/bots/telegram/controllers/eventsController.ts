@@ -1,12 +1,11 @@
 import { CategoryService } from "@/services/categoryService";
-import { SharedContext } from "@/types/grammy/SessionData";
 import { Category, Subcategory } from "@prisma/client";
-import { CallbackQueryContext, CommandContext, InlineKeyboard } from "grammy";
+import { InlineKeyboard } from "grammy";
 import { callbackPayloads } from "../utils/callbackPayloads";
 import { chunkArray } from "../utils/chunkArray";
 import { CallbackAction } from "../constants/callbackActions";
 import { EventService } from "@/services/eventService";
-import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
+import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { PAGE_SIZE } from "@/constants/appConstants";
 import dayjs from "dayjs";
 import { Event } from "@prisma/client";

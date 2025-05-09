@@ -4,7 +4,7 @@ import QRCode from "qrcode";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { EventService } from "@/services/eventService";
 import { TicketService } from "@/services/ticketService";
-import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
+import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { CallbackAction } from "../constants/callbackActions";
 import { callbackPayloads } from "../utils/callbackPayloads";
 import { handlePayload } from "../utils/handlePayload";

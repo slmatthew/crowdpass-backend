@@ -1,5 +1,5 @@
 import { Bot, Api, RawApi, InlineKeyboard } from "grammy";
-import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
+import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { bookingSessions } from "../sessions/bookingSession";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { vk } from "@/bots/vk";
