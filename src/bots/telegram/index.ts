@@ -1,16 +1,6 @@
 import { UserService } from "@/services/userService";
 import { Bot, session } from "grammy";
-import {
-  aboutCommand,
-  cancelCommand,
-  eventsCommand,
-  helpCommand,
-  linkCommand,
-  mybookingsCommand,
-  myticketsCommand,
-  supportCommand,
-  startCommand
-} from "./commands";
+import * as cmd from "./commands";
 import { handleBookingCallbacks } from "./handlers/bookingHandlers";
 import { handleTicketCallbacks } from "./handlers/ticketHandlers";
 import { handleNavigationCallbacks } from "./handlers/navigationHandlers";
@@ -41,18 +31,18 @@ bot.use(async (ctx, next) => {
 });
 
 /* commands */
-bot.command('start', startCommand);
-bot.command('help', helpCommand);
+bot.command('start', cmd.startCommand);
+bot.command('help', cmd.helpCommand);
 
-bot.command('about', aboutCommand);
-bot.command('support', supportCommand);
+bot.command('about', cmd.aboutCommand);
+bot.command('support', cmd.supportCommand);
 
-bot.command('link', linkCommand);
+bot.command('link', cmd.linkCommand);
 
-bot.command('events', eventsCommand);
-bot.command('mytickets', myticketsCommand);
-bot.command('mybookings', mybookingsCommand);
-bot.command('cancel', cancelCommand);
+bot.command('events', cmd.eventsCommand);
+bot.command('mytickets', cmd.myticketsCommand);
+bot.command('mybookings', cmd.mybookingsCommand);
+bot.command('cancel', cmd.cancelCommand);
 
 /* callbacks */
 handleBookingCallbacks(bot);
