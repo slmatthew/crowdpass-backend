@@ -11,7 +11,6 @@ import { SharedContext } from "@/types/grammy/SessionData";
 import { CallbackAction } from "../constants/callbackActions";
 import { callbackPayloads } from "../utils/callbackPayloads";
 import { handlePayload } from "../utils/handlePayload";
-import { number } from "zod";
 
 export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   handlePayload<[number, number]>(bot, CallbackAction.BOOKING_START, async (ctx, eventId, fromPage) => {

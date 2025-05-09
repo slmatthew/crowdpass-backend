@@ -8,7 +8,6 @@ import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
 import { CallbackAction } from "../constants/callbackActions";
 import { callbackPayloads } from "../utils/callbackPayloads";
 import { handlePayload } from "../utils/handlePayload";
-import { number } from "zod";
 
 export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   handlePayload<[number]>(bot, CallbackAction.EVENTS_PAGE, async (ctx, page) => {
