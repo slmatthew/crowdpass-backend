@@ -17,6 +17,7 @@ export enum CallbackAction {
 
   /* бронирования */
   MY_BOOKINGS_PAGE = "mbk_page", // страница бронирований
+  MY_BOOKING_PAY = "mbk_pay",
   MY_BOOKING_CANCEL = "mbk_cancel", // страница бронирования
   BOOKING_START = "bk_start",
   BOOKING_SELECT_TYPE = "bk_type",
