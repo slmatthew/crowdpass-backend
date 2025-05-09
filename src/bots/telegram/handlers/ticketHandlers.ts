@@ -54,6 +54,8 @@ export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
       return;
     }
 
+    await ctx.editMessageText('Отправляю QR-код 👇🏻');
+
     if(ctx.chat) await ctx.api.sendChatAction(ctx.chat.id, 'upload_photo');
   
     const qrData = `${process.env.AP_BASE_URI}/validate?secret=${ticket.qrCodeSecret}`;
