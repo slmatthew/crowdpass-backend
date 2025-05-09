@@ -4,6 +4,9 @@ import { startVkBot, vk } from "./bots/vk";
 import { startApiServer } from "./api";
 import { MessageQueueService } from "./services/messageQueueService";
 import { scheduleExpiredBookingCleanup } from "./utils/schedulers/cleanupExpiredBookings";
+import dotenv from "dotenv";
+
+dotenv.config();
 
 let shuttingDown = false;
 
