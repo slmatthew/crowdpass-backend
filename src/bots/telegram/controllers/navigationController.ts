@@ -15,6 +15,8 @@ export async function sendHome(ctx: ControllerContext) {
 Это главное меню. Выберите действие ниже 👇`;
 
   try {
+    await ctx.answerCallbackQuery();
+
     await ctx.editMessageText(
       text,
       {
@@ -22,8 +24,6 @@ export async function sendHome(ctx: ControllerContext) {
         reply_markup: homeKeyboard,
       }
     );
-
-    await ctx.answerCallbackQuery();
   } catch(err) {
     await ctx.reply(
       text,
