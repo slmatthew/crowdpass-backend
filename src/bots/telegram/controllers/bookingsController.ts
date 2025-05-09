@@ -291,8 +291,6 @@ export async function sendBookingStart(ctx: ControllerContext, eventId: number, 
 
   bookingTimeouts[userId] = setTimeout(async () => {
     if (bookingSessions[userId]) {
-      await ctx.reply(`🔔 Вы начали бронирование, но пока не завершили его.
-Пожалуйста, завершите бронирование или отмените через /cancel.`);
       delete bookingTimeouts[userId];
     }
   }, 120000);
