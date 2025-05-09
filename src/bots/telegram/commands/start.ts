@@ -33,6 +33,7 @@ export const startCommand = async (ctx: CommandContext<SharedContext>) => {
     .text("📜 Список мероприятий", CallbackAction.SHOW_EVENTS)
     .row()
     .text("🎟️ Мои бронирования", CallbackAction.MY_BOOKINGS)
+    .row()
     .text("🎫 Мои билеты", CallbackAction.MY_TICKETS);
 
   await ctx.reply(

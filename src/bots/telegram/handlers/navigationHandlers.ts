@@ -15,6 +15,7 @@ export function handleNavigationCallbacks(bot: Bot<SharedContext, Api<RawApi>>) 
       .text("📜 Список мероприятий", CallbackAction.SHOW_EVENTS)
       .row()
       .text("🎟️ Мои бронирования", CallbackAction.MY_BOOKINGS)
+      .row()
       .text("🎫 Мои билеты", CallbackAction.MY_TICKETS);
   
     await ctx.editMessageText(
