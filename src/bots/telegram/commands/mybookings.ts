@@ -1,9 +1,7 @@
 import { CommandContext } from "grammy";
-import { sendBookingsPage } from "../utils/paginator";
 import { SharedContext } from "@/types/grammy/SessionData";
+import { sendMyBookings } from "../controllers/bookingsController";
 
 export const mybookingsCommand = async (ctx: CommandContext<SharedContext>) => {
-  const userId = ctx.from?.id.toString();
-  if (!userId) return;
-  await sendBookingsPage(ctx, userId, 1);
+  await sendMyBookings(ctx);
 };
