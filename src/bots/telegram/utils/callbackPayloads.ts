@@ -13,7 +13,7 @@ export const callbackPayloads = {
   eventGetCategory: (categoryId: number) => `${CallbackAction.EVENT_GET_CATEGORY}_${categoryId}`,
   eventGetSubcategory: (subcategoryId: number) => `${CallbackAction.EVENT_GET_SUBCATEGORY}_${subcategoryId}`,
 
-  bookingStart: (eventId: number, fromPage: number) => `${CallbackAction.BOOKING_START}_${eventId}_${fromPage}`,
+  bookingStart: (eventId: number, fromPage: number, categoryId: number = 0, subcategoryId: number = 0) => `${CallbackAction.BOOKING_START}_${eventId}_${fromPage}_${categoryId}_${subcategoryId}`,
   bookingSelectType: (typeId: number) => `${CallbackAction.BOOKING_SELECT_TYPE}_${typeId}`,
   bookingConfirm: (userId: number | string) => `${CallbackAction.BOOKING_CONFIRM}_${userId}`,
   bookingCancel: (userId: number | string) => `${CallbackAction.BOOKING_CANCEL}_${userId}`,

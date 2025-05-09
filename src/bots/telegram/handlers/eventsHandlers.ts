@@ -34,11 +34,11 @@ export function handleEventsCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   handlePayload<[number, number]>(bot, CallbackAction.EVENT_DETAILS, sendEventDetails);
 
   handlePayload<[number, number, number]>(bot, CallbackAction.EVENT_DETAILS_CATEGORY, async (ctx, eventId, fromPage, categoryId) => {
-    await sendEventDetails(ctx, eventId, fromPage, categoryId, callbackPayloads.eventsCategoriedPage);
+    await sendEventDetails(ctx, eventId, fromPage, categoryId, 'category', callbackPayloads.eventsCategoriedPage);
   });
 
   handlePayload<[number, number, number]>(bot, CallbackAction.EVENT_DETAILS_SUBCATEGORY, async (ctx, eventId, fromPage, subcategoryId) => {
-    await sendEventDetails(ctx, eventId, fromPage, subcategoryId, callbackPayloads.eventsSubcategoriedPage);
+    await sendEventDetails(ctx, eventId, fromPage, subcategoryId, 'subcategory',callbackPayloads.eventsSubcategoriedPage);
   });
 
   handlePayload<[number]>(bot, CallbackAction.EVENT_CATEGORY, async (ctx, categoryId) => {

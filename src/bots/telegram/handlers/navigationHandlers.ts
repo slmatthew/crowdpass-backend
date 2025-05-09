@@ -11,15 +11,6 @@ import { sendHome } from "../controllers/navigationController";
 export function handleNavigationCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   bot.callbackQuery(CallbackAction.GO_HOME, sendHome);
   
-  bot.callbackQuery(CallbackAction.MY_BOOKINGS, async (ctx) => {
-    await ctx.answerCallbackQuery();
-    
-    const telegramUserId = ctx.from?.id.toString();
-    if (!telegramUserId) return;
-  
-    await sendBookingsPage(ctx, telegramUserId, 1);
-  });
-  
   bot.callbackQuery(CallbackAction.MY_TICKETS, async (ctx) => {
     await ctx.answerCallbackQuery();
   

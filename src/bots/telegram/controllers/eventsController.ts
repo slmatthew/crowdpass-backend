@@ -142,8 +142,9 @@ export async function sendEventDetails(
   eventId: number,
   fromPage: number,
   entityId: number = 0,
+  type: 'all' | 'category' | 'subcategory' = 'all',
   gEventsPage: (page: number, entityId: number) => string = callbackPayloads.eventsPage,
-  gBookingStart: (eventId: number, fromPage: number) => string = callbackPayloads.bookingStart
+  gBookingStart: (eventId: number, fromPage: number, categoryId: number, subcategoryId: number) => string = callbackPayloads.bookingStart
 ) {
   const event = await EventService.getEventById(eventId);
     
@@ -152,8 +153,11 @@ export async function sendEventDetails(
     return;
   }
 
+  const categoryId = type === 'category' ? entityId : 0;
+  const subcategoryId = type === 'subcategory' ? entityId : 0;
+
   const keyboard = new InlineKeyboard()
-    .text("🎟️ Забронировать билет", gBookingStart(eventId, fromPage))
+    .text("🎟️ Забронировать билет", gBookingStart(eventId, fromPage, categoryId, subcategoryId))
     .row()
     .text("⬅️ Назад", gEventsPage(fromPage, entityId));
 
