@@ -5,7 +5,6 @@ import { sendBookingsPage } from "../utils/paginator";
 import { bookingTimeouts } from "../sessions/bookingTimeouts";
 import { BookingService } from "@/services/bookingService";
 import { BookingError } from "@/types/errors/BookingError";
-import { EventService } from "@/services/eventService";
 import { TicketService } from "@/services/ticketService";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { CallbackAction } from "../constants/callbackActions";
@@ -53,7 +52,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
       }
     });
   
-    keyboard.text("⬅️ Назад к мероприятию", callbackPayloads.eventNavigate(eventId, fromPage));
+    keyboard.text("⬅️ Назад к мероприятию", callbackPayloads.eventDetails(eventId, fromPage));
   
     await ctx.editMessageText(
       "🎟️ Выберите тип билета:",
