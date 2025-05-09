@@ -10,8 +10,7 @@ import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
 import { PAGE_SIZE } from "@/constants/appConstants";
 import dayjs from "dayjs";
 import { Event } from "@prisma/client";
-
-type ControllerContext = CommandContext<SharedContext> | CallbackQueryContext<SharedContext>;
+import { ControllerContext } from "./ControllerContext";
 
 export async function sendCategoryChoice(ctx: ControllerContext) {
   const categories = await CategoryService.getAllCategories();
