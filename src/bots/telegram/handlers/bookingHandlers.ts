@@ -12,7 +12,7 @@ import { CallbackAction } from "../constants/callbackActions";
 import { callbackPayloads } from "../utils/callbackPayloads";
 
 export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
-  bot.callbackQuery(new RegExp(`/^${CallbackAction.BOOKING_START}_(\d+)_(\d+)$/`), async (ctx) => {
+  bot.callbackQuery(new RegExp(`^${CallbackAction.BOOKING_START}_(\\d+)_(\\d+)$`), async (ctx) => {
     const eventId = Number(ctx.match[1]);
     const fromPage = Number(ctx.match[2]);
     const userId = ctx.from?.id.toString();
@@ -70,7 +70,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   /**
    * @TODO EVENT_DETAILS = EVENT_NAVIGATE
    */
-  bot.callbackQuery(new RegExp(`/^${CallbackAction.EVENT_NAVIGATE}_(\d+)_(\d+)$/`), async (ctx) => {
+  bot.callbackQuery(new RegExp(`^${CallbackAction.EVENT_NAVIGATE}_(\\d+)_(\\d+)$`), async (ctx) => {
     const eventId = Number(ctx.match[1]);
     const fromPage = Number(ctx.match[2]);
   
@@ -97,7 +97,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     await ctx.answerCallbackQuery();
   });
 
-  bot.callbackQuery(new RegExp(`/^${CallbackAction.BOOKING_SELECT_TYPE}_(\d+)$/`), async (ctx) => {
+  bot.callbackQuery(new RegExp(`^${CallbackAction.BOOKING_SELECT_TYPE}_(\\d+)$`), async (ctx) => {
     const ticketTypeId = Number(ctx.match[1]);
     const userId = ctx.from?.id.toString();
   
@@ -116,7 +116,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     await ctx.answerCallbackQuery();
   });
 
-  bot.callbackQuery(new RegExp(`/^${CallbackAction.MY_BOOKING_CANCEL}_(\d+)_(\d+)$/`), async (ctx) => {
+  bot.callbackQuery(new RegExp(`^${CallbackAction.MY_BOOKING_CANCEL}_(\\d+)_(\\d+)$`), async (ctx) => {
     const bookingId = Number(ctx.match[1]);
     const page = Number(ctx.match[2]);
     const userId = ctx.from?.id.toString();
@@ -141,7 +141,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     }
   });
 
-  bot.callbackQuery(new RegExp(`/^${CallbackAction.MY_BOOKINGS_PAGE}_(\d+)$/`), async (ctx) => {
+  bot.callbackQuery(new RegExp(`^${CallbackAction.MY_BOOKINGS_PAGE}_(\\d+)$`), async (ctx) => {
     const page = Number(ctx.match[1]);
     const userId = ctx.from?.id.toString();
     if (!userId) return;
@@ -149,7 +149,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     await sendBookingsPage(ctx, userId, page, true);
   });
 
-  bot.callbackQuery(new RegExp(`/^${CallbackAction.BOOKING_CONFIRM}_(\d+)$/`), async (ctx) => {
+  bot.callbackQuery(new RegExp(`^${CallbackAction.BOOKING_CONFIRM}_(\\d+)$`), async (ctx) => {
     const userId = ctx.match[1];
     if (!userId || !bookingSessions[userId]) {
       await ctx.answerCallbackQuery();
@@ -199,7 +199,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     }
   });
 
-  bot.callbackQuery(new RegExp(`/^${CallbackAction.BOOKING_CANCEL}_(\d+)$/`), async (ctx) => {
+  bot.callbackQuery(new RegExp(`^${CallbackAction.BOOKING_CANCEL}_(\\d+)$`), async (ctx) => {
     const userId = ctx.match[1];
     if (!userId) return;
 
