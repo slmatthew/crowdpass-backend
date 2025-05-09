@@ -1,50 +1,15 @@
 import { Api, Bot, InlineKeyboard, RawApi } from "grammy";
-import { sendBookingsPage, sendEventsPage } from "../utils/paginator";
+import { sendBookingsPage } from "../utils/paginator";
 import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { BookingService } from "@/services/bookingService";
 import { BookingStatus } from "@prisma/client";
 import { CallbackAction } from "../constants/callbackActions";
 import { callbackPayloads } from "../utils/callbackPayloads";
+import { sendHome } from "../controllers/navigationController";
 
 export function handleNavigationCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
-  bot.callbackQuery(CallbackAction.GO_HOME, async (ctx) => {
-    await ctx.answerCallbackQuery();
-  
-    const keyboard = new InlineKeyboard()
-      .text("📜 Список мероприятий", CallbackAction.EVENTS_CHOICE_CATEGORY)
-      .row()
-      .text("🎟️ Мои бронирования", CallbackAction.MY_BOOKINGS)
-      .row()
-      .text("🎫 Мои билеты", CallbackAction.MY_TICKETS);
-
-    const text = `👋 Добро пожаловать в *CrowdPass*!
-  
-  Выберите действие ниже 👇`;
-
-    try {
-      await ctx.editMessageText(
-        text,
-        {
-          parse_mode: "Markdown",
-          reply_markup: keyboard,
-        }
-      );
-    } catch(err) {
-      await ctx.reply(
-        text,
-        {
-          parse_mode: "Markdown",
-          reply_markup: keyboard,
-        }
-      );
-    }
-  });
-
-  bot.callbackQuery(CallbackAction.SHOW_EVENTS, async (ctx) => {
-    await ctx.answerCallbackQuery();
-    await sendEventsPage(ctx, 1);
-  });
+  bot.callbackQuery(CallbackAction.GO_HOME, sendHome);
   
   bot.callbackQuery(CallbackAction.MY_BOOKINGS, async (ctx) => {
     await ctx.answerCallbackQuery();
