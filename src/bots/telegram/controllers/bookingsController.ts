@@ -276,6 +276,17 @@ export async function sendBookingStart(ctx: ControllerContext, eventId: number, 
     return;
   }
 
+  let backButtonPayload: string = CallbackAction.GO_HOME;
+  if(categoryId === 0 && subcategoryId === 0) {
+    backButtonPayload = callbackPayloads.eventDetails(eventId, fromPage);
+  } else if(categoryId !== 0) {
+    backButtonPayload = callbackPayloads.eventDetailsCategory(eventId, fromPage, categoryId);
+  } else if(subcategoryId !== 0) {
+    backButtonPayload = callbackPayloads.eventDetailsSubcategory(eventId, fromPage, subcategoryId);
+  }
+
+  const goBackMarkup = { reply_markup: new InlineKeyboard().text('⬅️ Вернуться назад', backButtonPayload) };
+
   bookingSessions[userId] = { eventId, fromPage };
 
   bookingTimeouts[userId] = setTimeout(async () => {
@@ -288,7 +299,7 @@ export async function sendBookingStart(ctx: ControllerContext, eventId: number, 
 
   const ticketTypes = await TicketService.getTicketTypesForEvent(eventId, true);
   if (ticketTypes.length === 0) {
-    await ctx.editMessageText("К сожалению, для этого мероприятия нет доступных билетов.", extraGoToHomeKeyboard);
+    await ctx.editMessageText("К сожалению, для этого мероприятия нет доступных билетов.", goBackMarkup);
     await ctx.answerCallbackQuery();
     return;
   }
@@ -306,18 +317,12 @@ export async function sendBookingStart(ctx: ControllerContext, eventId: number, 
   });
 
   if(totalAvailable === 0) {
-    await ctx.editMessageText("К сожалению, для этого мероприятия нет доступных билетов.", extraGoToHomeKeyboard);
+    await ctx.editMessageText("К сожалению, для этого мероприятия нет доступных билетов.", goBackMarkup);
     await ctx.answerCallbackQuery();
     return;
   }
 
-  if(categoryId === 0 && subcategoryId === 0) {
-    keyboard.text("⬅️ Назад к мероприятию", callbackPayloads.eventDetails(eventId, fromPage));
-  } else if(categoryId !== 0) {
-    keyboard.text("⬅️ Назад к мероприятию", callbackPayloads.eventDetailsCategory(eventId, fromPage, categoryId));
-  } else if(subcategoryId !== 0) {
-    keyboard.text("⬅️ Назад к мероприятию", callbackPayloads.eventDetailsSubcategory(eventId, fromPage, subcategoryId));
-  }
+  keyboard.text("⬅️ Назад к мероприятию", backButtonPayload);
 
   await ctx.editMessageText(
     "🎟️ Выберите тип билета:",
