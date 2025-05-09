@@ -17,16 +17,28 @@ export function handleNavigationCallbacks(bot: Bot<SharedContext, Api<RawApi>>) 
       .text("🎟️ Мои бронирования", CallbackAction.MY_BOOKINGS)
       .row()
       .text("🎫 Мои билеты", CallbackAction.MY_TICKETS);
+
+    const text = `👋 Добро пожаловать в *CrowdPass*!
   
-    await ctx.editMessageText(
-      `👋 Добро пожаловать в *CrowdPass*!
-  
-  Выберите действие ниже 👇`,
-      {
-        parse_mode: "Markdown",
-        reply_markup: keyboard,
-      }
-    );
+  Выберите действие ниже 👇`;
+
+    try {
+      await ctx.editMessageText(
+        text,
+        {
+          parse_mode: "Markdown",
+          reply_markup: keyboard,
+        }
+      );
+    } catch(err) {
+      await ctx.reply(
+        text,
+        {
+          parse_mode: "Markdown",
+          reply_markup: keyboard,
+        }
+      );
+    }
   });
 
   bot.callbackQuery(CallbackAction.SHOW_EVENTS, async (ctx) => {
