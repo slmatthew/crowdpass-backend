@@ -1,5 +1,5 @@
 import { CommandContext, InlineKeyboard } from "grammy";
-import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
+import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { BookingService } from "@/services/bookingService";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { BookingStatus } from "@prisma/client";
