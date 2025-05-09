@@ -22,5 +22,6 @@ export const callbackPayloads = {
   myBookingPay: (bookingId: number, page: number) => `${CallbackAction.MY_BOOKING_PAY}_${bookingId}_${page}`,
   myBookingCancel: (bookingId: number, page: number) => `${CallbackAction.MY_BOOKING_CANCEL}_${bookingId}_${page}`,
   
+  myTicketsPage: (page: number) => `${CallbackAction.MY_TICKETS_PAGE}_${page}`,
   ticketQr: (ticketId: number) => `${CallbackAction.TICKET_QR}_${ticketId}`,
 };

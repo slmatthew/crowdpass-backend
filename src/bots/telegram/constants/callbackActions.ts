@@ -25,6 +25,7 @@ export enum CallbackAction {
   BOOKING_CANCEL = "bk_cancel",
 
   /* билеты */
+  MY_TICKETS_PAGE = "mt_page",
   TICKET_QR = "tk_qr", // мои билеты
 
   /* главное меню */
