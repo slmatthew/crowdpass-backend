@@ -1,8 +1,9 @@
-import { CommandContext, Context } from "grammy";
+import { CommandContext } from "grammy";
 import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
 import { bookingSessions } from "../sessions/bookingSession";
+import { SharedContext } from "@/types/grammy/SessionData";
 
-export const cancelCommand = async (ctx: CommandContext<Context>) => {
+export const cancelCommand = async (ctx: CommandContext<SharedContext>) => {
   const userId = ctx.from?.id.toString();
 
   if (userId && bookingSessions[userId]) {

@@ -1,7 +1,8 @@
-import { CommandContext, Context, InlineKeyboard } from "grammy";
+import { CommandContext, InlineKeyboard } from "grammy";
 import { CallbackAction } from "../constants/callbackActions";
+import { SharedContext } from "@/types/grammy/SessionData";
 
-export const aboutCommand = async (ctx: CommandContext<Context>) => {
+export const aboutCommand = async (ctx: CommandContext<SharedContext>) => {
   await ctx.reply(
     `ℹ️ *О проекте CrowdPass:*
 

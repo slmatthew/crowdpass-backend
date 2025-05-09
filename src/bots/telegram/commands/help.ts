@@ -1,6 +1,7 @@
-import { CommandContext, Context } from "grammy";
+import { SharedContext } from "@/types/grammy/SessionData";
+import { CommandContext } from "grammy";
 
-export const helpCommand = async (ctx: CommandContext<Context>) => {
+export const helpCommand = async (ctx: CommandContext<SharedContext>) => {
   await ctx.reply(
     `ℹ️ *Команды бота:*
 

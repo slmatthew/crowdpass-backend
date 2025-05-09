@@ -1,7 +1,8 @@
-import { CommandContext, Context, InlineKeyboard } from "grammy";
+import { CommandContext, InlineKeyboard } from "grammy";
 import { CallbackAction } from "../constants/callbackActions";
+import { SharedContext } from "@/types/grammy/SessionData";
 
-export const supportCommand = async (ctx: CommandContext<Context>) => {
+export const supportCommand = async (ctx: CommandContext<SharedContext>) => {
   await ctx.reply(
     `🆘 *Поддержка пользователей:*
 

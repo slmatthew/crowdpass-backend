@@ -1,6 +1,7 @@
 import { SharedContext } from "@/types/grammy/SessionData";
+import { CommandContext } from "grammy";
 
-export const linkCommand = async (ctx: SharedContext) => {
+export const linkCommand = async (ctx: CommandContext<SharedContext>) => {
   if(ctx.sfx.user?.vkId) return await ctx.reply(
     `Вы уже добавили свой [аккаунт ВКонтакте](https://vk.com/id${ctx.sfx.user.vkId}).
 

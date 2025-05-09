@@ -1,4 +1,4 @@
-import { CommandContext, Context } from "grammy";
+import { CommandContext } from "grammy";
 import { sendAllEvents } from "../controllers/eventsController";
 import { SharedContext } from "@/types/grammy/SessionData";
 
