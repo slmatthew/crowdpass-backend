@@ -1,4 +1,5 @@
 import { CommandContext, Context, InlineKeyboard } from "grammy";
+import { CallbackAction } from "../constants/callbackActions";
 
 export const aboutCommand = async (ctx: CommandContext<Context>) => {
   await ctx.reply(
@@ -15,7 +16,7 @@ CrowdPass — это сервис для бронирования билетов
 Спасибо, что пользуетесь нашим сервисом! 🚀`,
     {
       parse_mode: 'Markdown',
-      reply_markup: new InlineKeyboard().text('Главное меню', 'go_to_home')
+      reply_markup: new InlineKeyboard().text('Главное меню', CallbackAction.GO_HOME)
     }
   );
 };

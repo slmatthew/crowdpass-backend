@@ -2,6 +2,7 @@ import { UserService } from "@/services/userService";
 import { UserErrorCodes } from "@/types/errors/UserError";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { InlineKeyboard, CommandContext } from "grammy";
+import { CallbackAction } from "../constants/callbackActions";
 
 export const startCommand = async (ctx: CommandContext<SharedContext>) => {
   const user = ctx.sfx?.user;
@@ -29,11 +30,10 @@ export const startCommand = async (ctx: CommandContext<SharedContext>) => {
 
   // === Стандартное приветствие ===
   const keyboard = new InlineKeyboard()
-    .text("📜 Список мероприятий", "go_to_events")
+    .text("📜 Список мероприятий", CallbackAction.SHOW_EVENTS)
     .row()
-    .text("🎟️ Мои бронирования", "go_to_bookings")
-    .row()
-    .text("🎫 Мои билеты", "go_to_tickets");
+    .text("🎟️ Мои бронирования", CallbackAction.MY_BOOKINGS)
+    .text("🎫 Мои билеты", CallbackAction.MY_TICKETS);
 
   await ctx.reply(
     `👋 Привет, ${user.firstName || "пользователь"}!

@@ -8,6 +8,7 @@ import { Platform } from "@prisma/client";
 import { UserError } from "@/types/errors/UserError";
 import { sendLinkRequest } from "@/bots/utils/sendLinkRequest";
 import { TicketService } from "@/services/ticketService";
+import { callbackPayloads } from "../utils/callbackPayloads";
 
 export function handleText(bot: Bot<SharedContext, Api<RawApi>>) {
   bot.on("message:text", async (ctx) => {
@@ -81,8 +82,8 @@ export function handleText(bot: Bot<SharedContext, Api<RawApi>>) {
     bookingSessions[userId].ticketsCount = count;
 
     const keyboard = new InlineKeyboard()
-      .text("✅ Подтвердить", `confirm_booking_${userId}`)
-      .text("❌ Отменить", `cancel_booking_${userId}`);
+      .text("✅ Подтвердить", callbackPayloads.bookingConfirm(userId))
+      .text("❌ Отменить", callbackPayloads.bookingCancel(userId));
 
     await ctx.react('👌');
 

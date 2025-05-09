@@ -8,9 +8,11 @@ import { BookingError } from "@/types/errors/BookingError";
 import { EventService } from "@/services/eventService";
 import { TicketService } from "@/services/ticketService";
 import { SharedContext } from "@/types/grammy/SessionData";
+import { CallbackAction } from "../constants/callbackActions";
+import { callbackPayloads } from "../utils/callbackPayloads";
 
 export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
-  bot.callbackQuery(/^book_(\d+)_(\d+)$/, async (ctx) => {
+  bot.callbackQuery(new RegExp(`/^${CallbackAction.BOOKING_START}_(\d+)_(\d+)$/`), async (ctx) => {
     const eventId = Number(ctx.match[1]);
     const fromPage = Number(ctx.match[2]);
     const userId = ctx.from?.id.toString();
@@ -32,6 +34,10 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   
     const ticketTypes = await TicketService.getTicketTypesForEvent(eventId, true);
   
+    /**
+     * @TODO NEED FIX: это сообщение должно появляться еще и в случае, если ticketTypes есть, а общее количество tickets
+     * @TODO у мероприятия – 0
+     */
     if (ticketTypes.length === 0) {
       await ctx.editMessageText("К сожалению, для этого мероприятия нет доступных билетов.", extraGoToHomeKeyboard);
       await ctx.answerCallbackQuery();
@@ -43,12 +49,12 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     ticketTypes.forEach((type) => {
       const availableCount = type.tickets.filter(t => t.status === "AVAILABLE").length;
       if (availableCount > 0) {
-        keyboard.text(`${type.name} — ${type.price}₽ (${availableCount} шт.)`, `selectType_${type.id}`);
+        keyboard.text(`${type.name} — ${type.price}₽ (${availableCount} шт.)`, callbackPayloads.bookingSelectType(type.id));
         keyboard.row();
       }
     });
   
-    keyboard.text("⬅️ Назад к мероприятию", `back_to_event_${eventId}_${fromPage}`);
+    keyboard.text("⬅️ Назад к мероприятию", callbackPayloads.eventNavigate(eventId, fromPage));
   
     await ctx.editMessageText(
       "🎟️ Выберите тип билета:",
@@ -61,7 +67,10 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     await ctx.answerCallbackQuery();
   });
 
-  bot.callbackQuery(/^back_to_event_(\d+)_(\d+)$/, async (ctx) => {
+  /**
+   * @TODO EVENT_DETAILS = EVENT_NAVIGATE
+   */
+  bot.callbackQuery(new RegExp(`/^${CallbackAction.EVENT_NAVIGATE}_(\d+)_(\d+)$/`), async (ctx) => {
     const eventId = Number(ctx.match[1]);
     const fromPage = Number(ctx.match[2]);
   
@@ -73,9 +82,9 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     }
   
     const keyboard = new InlineKeyboard()
-      .text("🎟️ Забронировать билет", `book_${eventId}_${fromPage}`)
+      .text("🎟️ Забронировать билет", callbackPayloads.bookingStart(eventId, fromPage))
       .row()
-      .text("⬅️ Назад к мероприятиям", `back_to_events_${fromPage}`);
+      .text("⬅️ Назад к мероприятиям", callbackPayloads.eventsPage(fromPage));
   
     await ctx.editMessageText(
       `🎫 *${event.name}*\n\n${event.description}\n\n📅 Дата: ${event.startDate.toLocaleString()}\n📍 Место: ${event.location}`,
@@ -88,7 +97,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     await ctx.answerCallbackQuery();
   });
 
-  bot.callbackQuery(/^selectType_(\d+)$/, async (ctx) => {
+  bot.callbackQuery(new RegExp(`/^${CallbackAction.BOOKING_SELECT_TYPE}_(\d+)$/`), async (ctx) => {
     const ticketTypeId = Number(ctx.match[1]);
     const userId = ctx.from?.id.toString();
   
@@ -107,7 +116,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     await ctx.answerCallbackQuery();
   });
 
-  bot.callbackQuery(/^cancel_(\d+)_(\d+)$/, async (ctx) => {
+  bot.callbackQuery(new RegExp(`/^${CallbackAction.MY_BOOKING_CANCEL}_(\d+)_(\d+)$/`), async (ctx) => {
     const bookingId = Number(ctx.match[1]);
     const page = Number(ctx.match[2]);
     const userId = ctx.from?.id.toString();
@@ -132,7 +141,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     }
   });
 
-  bot.callbackQuery(/^mybookings_page_(\d+)$/, async (ctx) => {
+  bot.callbackQuery(new RegExp(`/^${CallbackAction.MY_BOOKINGS_PAGE}_(\d+)$/`), async (ctx) => {
     const page = Number(ctx.match[1]);
     const userId = ctx.from?.id.toString();
     if (!userId) return;
@@ -140,7 +149,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     await sendBookingsPage(ctx, userId, page, true);
   });
 
-  bot.callbackQuery(/^confirm_booking_(\d+)$/, async (ctx) => {
+  bot.callbackQuery(new RegExp(`/^${CallbackAction.BOOKING_CONFIRM}_(\d+)$/`), async (ctx) => {
     const userId = ctx.match[1];
     if (!userId || !bookingSessions[userId]) {
       await ctx.answerCallbackQuery();
@@ -190,7 +199,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     }
   });
 
-  bot.callbackQuery(/^cancel_booking_(\d+)$/, async (ctx) => {
+  bot.callbackQuery(new RegExp(`/^${CallbackAction.BOOKING_CANCEL}_(\d+)$/`), async (ctx) => {
     const userId = ctx.match[1];
     if (!userId) return;
 

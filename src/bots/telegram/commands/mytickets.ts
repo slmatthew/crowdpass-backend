@@ -3,6 +3,8 @@ import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
 import { BookingService } from "@/services/bookingService";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { BookingStatus } from "@prisma/client";
+import { callbackPayloads } from "../utils/callbackPayloads";
+import { CallbackAction } from "../constants/callbackActions";
 
 export const myticketsCommand = async (ctx: CommandContext<SharedContext>) => {
   const user = ctx.sfx.user;
@@ -48,11 +50,11 @@ export const myticketsCommand = async (ctx: CommandContext<SharedContext>) => {
 
   tickets.forEach((ticket, index) => {
     text += `*${index + 1}.* ${ticket.eventName}\n📅 ${ticket.eventDate.toLocaleDateString()} | 📍 ${ticket.eventLocation}\nКатегория: ${ticket.ticketTypeName}\n\n`;
-    keyboard.text(`🔎 QR ${index + 1}`, `show_qr_${ticket.ticketId}`);
+    keyboard.text(`🔎 QR ${index + 1}`, callbackPayloads.ticketQr(ticket.ticketId));
     keyboard.row();
   });
 
-  keyboard.text('⬅️ Главное меню', 'go_to_home');
+  keyboard.text('⬅️ Главное меню', CallbackAction.GO_HOME);
 
   await ctx.reply(text, {
     parse_mode: "Markdown",

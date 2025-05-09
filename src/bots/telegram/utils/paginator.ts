@@ -4,6 +4,8 @@ import { EventService } from "@/services/eventService";
 import { BookingService } from "@/services/bookingService";
 import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
 import { PAGE_SIZE } from "@/constants/appConstants";
+import { callbackPayloads } from "./callbackPayloads";
+import { CallbackAction } from "../constants/callbackActions";
 
 export async function sendBookingsPage(ctx: CommandContext<SharedContext>|CallbackQueryContext<SharedContext>, userId: string, page: number, isEdit = false) {
   const user = ctx.sfx.user;
@@ -63,20 +65,20 @@ export async function sendBookingsPage(ctx: CommandContext<SharedContext>|Callba
   
       text += `\n`;
   
-      keyboard.text(`❌ Отменить ${startIndex + index + 1}`, `cancel_${booking.id}_${page}`);
+      keyboard.text(`❌ Отменить ${startIndex + index + 1}`, callbackPayloads.myBookingCancel(booking.id, page));
       keyboard.row();
     }
   });  
 
   if (page > 1) {
-    keyboard.text("⬅️ Назад", `mybookings_page_${page - 1}`);
+    keyboard.text("⬅️ Назад", callbackPayloads.myBookingsPage(page - 1));
   }
   if (page < totalPages) {
-    keyboard.text("Вперёд ➡️", `mybookings_page_${page + 1}`);
+    keyboard.text("Вперёд ➡️", callbackPayloads.myBookingsPage(page + 1));
   }
 
   keyboard.row();
-  keyboard.text('Главное меню', 'go_to_home');
+  keyboard.text('Главное меню', CallbackAction.GO_HOME);
 
   if (isEdit) {
     await ctx.editMessageText(text, {
@@ -117,20 +119,20 @@ export async function sendEventsPage(ctx: CommandContext<Context>|CallbackQueryC
   eventsPage.forEach((event, index) => {
     const eventNumber = startIndex + index + 1;
     text += `${eventNumber}. ${event.name} (${event.startDate.toLocaleDateString()})\n`;
-    keyboard.text(`${eventNumber}`, `event_${event.id}_${page}`);
+    keyboard.text(`${eventNumber}`, callbackPayloads.eventDetails(event.id, page));
   });    
 
   keyboard.row();
 
   if (page > 1) {
-    keyboard.text("⬅️ Назад", `page_${page - 1}`);
+    keyboard.text("⬅️ Назад", callbackPayloads.eventsPage(page - 1));
   }
   if (page < totalPages) {
-    keyboard.text("Вперёд ➡️", `page_${page + 1}`);
+    keyboard.text("Вперёд ➡️", callbackPayloads.eventsPage(page + 1));
   }
 
   keyboard.row();
-  keyboard.text('Главное меню', 'go_to_home');
+  keyboard.text('Главное меню', CallbackAction.GO_HOME);
 
   if (isEdit) {
     await ctx.editMessageText(text, {

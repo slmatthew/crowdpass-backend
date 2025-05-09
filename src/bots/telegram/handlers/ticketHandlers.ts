@@ -5,15 +5,20 @@ import { SharedContext } from "@/types/grammy/SessionData";
 import { EventService } from "@/services/eventService";
 import { TicketService } from "@/services/ticketService";
 import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
+import { CallbackAction } from "../constants/callbackActions";
+import { callbackPayloads } from "../utils/callbackPayloads";
 
 export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
-  bot.callbackQuery(/^back_to_events_(\d+)$/, async (ctx) => {
+  bot.callbackQuery(new RegExp(`/^${CallbackAction.EVENTS_PAGE}_(\d+)$/`), async (ctx) => {
     const page = Number(ctx.match[1]);
     await ctx.answerCallbackQuery();
     await sendEventsPage(ctx, page, true);
   });
 
-  bot.callbackQuery(/^event_(\d+)_(\d+)$/, async (ctx) => {
+  /**
+   * @TODO EVENT_DETAILS = EVENT_NAVIGATE
+   */
+  bot.callbackQuery(new RegExp(`/^${CallbackAction.EVENT_DETAILS}_(\d+)_(\d+)$/`), async (ctx) => {
     const eventId = Number(ctx.match[1]);
     const fromPage = Number(ctx.match[2]);
   
@@ -25,9 +30,9 @@ export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     }
   
     const keyboard = new InlineKeyboard()
-      .text("🎟️ Забронировать билет", `book_${eventId}_${fromPage}`)
+      .text("🎟️ Забронировать билет", callbackPayloads.bookingStart(eventId, fromPage))
       .row()
-      .text("⬅️ Назад", `back_to_events_${fromPage}`);
+      .text("⬅️ Назад", callbackPayloads.eventsPage(fromPage));
   
     await ctx.editMessageText(
       `🎫 *${event.name}*\n\n${event.description}\n\n📅 Дата: ${event.startDate.toLocaleString()}\n📍 Место: ${event.location}`,
@@ -40,13 +45,7 @@ export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     await ctx.answerCallbackQuery();
   });
 
-  bot.callbackQuery(/^page_(\d+)$/, async (ctx) => {
-    const page = Number(ctx.match[1]);
-    await ctx.answerCallbackQuery();
-    await sendEventsPage(ctx, page, true);
-  });
-
-  bot.callbackQuery(/^show_qr_(\d+)$/, async (ctx) => {
+  bot.callbackQuery(new RegExp(`/^${CallbackAction.TICKET_QR}_(\d+)$/`), async (ctx) => {
     const ticketId = Number(ctx.match[1]);
     const userId = ctx.from?.id.toString();
     if (!userId) return;

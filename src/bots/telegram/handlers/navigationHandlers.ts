@@ -4,17 +4,18 @@ import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { BookingService } from "@/services/bookingService";
 import { BookingStatus } from "@prisma/client";
+import { CallbackAction } from "../constants/callbackActions";
+import { callbackPayloads } from "../utils/callbackPayloads";
 
 export function handleNavigationCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
-  bot.callbackQuery("go_to_home", async (ctx) => {
+  bot.callbackQuery(CallbackAction.GO_HOME, async (ctx) => {
     await ctx.answerCallbackQuery();
   
     const keyboard = new InlineKeyboard()
-      .text("📜 Список мероприятий", "go_to_events")
+      .text("📜 Список мероприятий", CallbackAction.SHOW_EVENTS)
       .row()
-      .text("🎟️ Мои бронирования", "go_to_bookings")
-      .row()
-      .text("🎫 Мои билеты", "go_to_tickets");
+      .text("🎟️ Мои бронирования", CallbackAction.MY_BOOKINGS)
+      .text("🎫 Мои билеты", CallbackAction.MY_TICKETS);
   
     await ctx.editMessageText(
       `👋 Добро пожаловать в *CrowdPass*!
@@ -27,12 +28,12 @@ export function handleNavigationCallbacks(bot: Bot<SharedContext, Api<RawApi>>) 
     );
   });
 
-  bot.callbackQuery("go_to_events", async (ctx) => {
+  bot.callbackQuery(CallbackAction.SHOW_EVENTS, async (ctx) => {
     await ctx.answerCallbackQuery();
     await sendEventsPage(ctx, 1);
   });
   
-  bot.callbackQuery("go_to_bookings", async (ctx) => {
+  bot.callbackQuery(CallbackAction.MY_BOOKINGS, async (ctx) => {
     await ctx.answerCallbackQuery();
     
     const telegramUserId = ctx.from?.id.toString();
@@ -41,7 +42,7 @@ export function handleNavigationCallbacks(bot: Bot<SharedContext, Api<RawApi>>) 
     await sendBookingsPage(ctx, telegramUserId, 1);
   });
   
-  bot.callbackQuery("go_to_tickets", async (ctx) => {
+  bot.callbackQuery(CallbackAction.MY_TICKETS, async (ctx) => {
     await ctx.answerCallbackQuery();
   
     const telegramUserId = ctx.from?.id.toString();
@@ -89,12 +90,12 @@ export function handleNavigationCallbacks(bot: Bot<SharedContext, Api<RawApi>>) 
   
     tickets.forEach((ticket, index) => {
       text += `*${index + 1}.* ${ticket.eventName}\n📅 ${ticket.eventDate.toLocaleDateString()} | 📍 ${ticket.eventLocation}\nКатегория: ${ticket.ticketTypeName}\n\n`;
-      keyboard.text(`🔎 QR ${index + 1}`, `show_qr_${ticket.ticketId}`);
+      keyboard.text(`🔎 QR ${index + 1}`, callbackPayloads.ticketQr(ticket.ticketId));
       keyboard.row();
     });
   
     keyboard.row();
-    keyboard.text('Главное меню', 'go_to_home');
+    keyboard.text('Главное меню', CallbackAction.GO_HOME);
   
     await ctx.reply(text, {
       parse_mode: "Markdown",
