@@ -9,7 +9,6 @@ export enum CallbackAction {
   EVENTS_CATEGORIED_PAGE = "ev_p_ctg",
   EVENTS_SUBCATEGORIED_PAGE = "ev_p_subctg",
   EVENT_DETAILS = "ev_details",
-  EVENT_NAVIGATE = CallbackAction.EVENT_DETAILS,
   EVENT_DETAILS_CATEGORY = "ev_d_ctg",
   EVENT_DETAILS_SUBCATEGORY = "ev_d_subctg",
   EVENT_CATEGORY = "ev_ctg",

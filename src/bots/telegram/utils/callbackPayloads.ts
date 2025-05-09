@@ -8,8 +8,6 @@ export const callbackPayloads = {
   eventDetails: (eventId: number, page: number, _: number = 0) => `${CallbackAction.EVENT_DETAILS}_${eventId}_${page}`,
   eventDetailsCategory: (eventId: number, page: number, entityId: number) => `${CallbackAction.EVENT_DETAILS_CATEGORY}_${eventId}_${page}_${entityId}`,
   eventDetailsSubcategory: (eventId: number, page: number, entityId: number) => `${CallbackAction.EVENT_DETAILS_SUBCATEGORY}_${eventId}_${page}_${entityId}`,
-  
-  eventNavigate: (eventId: number, fromPage: number) => `${CallbackAction.EVENT_NAVIGATE}_${eventId}_${fromPage}`,
 
   eventCategory: (categoryId: number) => `${CallbackAction.EVENT_CATEGORY}_${categoryId}`,
   eventGetCategory: (categoryId: number) => `${CallbackAction.EVENT_GET_CATEGORY}_${categoryId}`,
