@@ -48,10 +48,10 @@ bot.command('cancel', cmd.cancelCommand);
 bot.command('test', cmd.testCommand);
 
 /* callbacks */
+handleNavigationCallbacks(bot);
 handleEventsCallbacks(bot);
 handleBookingCallbacks(bot);
 handleTicketCallbacks(bot);
-handleNavigationCallbacks(bot);
 
 /* text */
 handleText(bot);
