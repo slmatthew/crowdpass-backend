@@ -45,6 +45,30 @@ export class EventService {
     });
   }
 
+  static async getEventsByCategoryId(categoryId: number) {
+    return prisma.event.findMany({
+      where: {
+        categoryId,
+        endDate: {
+          gte: new Date()
+        }
+      },
+      orderBy: { startDate: 'asc' },
+    });
+  }
+
+  static async getEventsBySubcategoryId(subcategoryId: number) {
+    return prisma.event.findMany({
+      where: {
+        subcategoryId,
+        endDate: {
+          gte: new Date()
+        }
+      },
+      orderBy: { startDate: 'asc' },
+    });
+  }
+
   static async getEventById(id: number, include: EventExtendedOptions = {}) {
     return prisma.event.findUnique({
       where: { id },

@@ -7,3 +7,4 @@ export { mybookingsCommand } from "./mybookings";
 export { myticketsCommand } from "./mytickets";
 export { supportCommand } from "./support";
 export { startCommand } from "./start";
+export { testCommand } from "./test";

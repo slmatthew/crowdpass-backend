@@ -8,40 +8,9 @@ import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
 import { CallbackAction } from "../constants/callbackActions";
 import { callbackPayloads } from "../utils/callbackPayloads";
 import { handlePayload } from "../utils/handlePayload";
+import dayjs from "dayjs";
 
 export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
-  handlePayload<[number]>(bot, CallbackAction.EVENTS_PAGE, async (ctx, page) => {
-    await ctx.answerCallbackQuery();
-    await sendEventsPage(ctx, page, true);
-  });
-
-  /**
-   * @TODO EVENT_DETAILS = EVENT_NAVIGATE
-   */
-  handlePayload<[number, number]>(bot, CallbackAction.EVENT_DETAILS, async (ctx, eventId, fromPage) => {
-    const event = await EventService.getEventById(eventId);
-  
-    if (!event) {
-      await ctx.answerCallbackQuery({ text: "Мероприятие не найдено!" });
-      return;
-    }
-  
-    const keyboard = new InlineKeyboard()
-      .text("🎟️ Забронировать билет", callbackPayloads.bookingStart(eventId, fromPage))
-      .row()
-      .text("⬅️ Назад", callbackPayloads.eventsPage(fromPage));
-  
-    await ctx.editMessageText(
-      `🎫 *${event.name}*\n\n${event.description}\n\n📅 Дата: ${event.startDate.toLocaleString()}\n📍 Место: ${event.location}`,
-      {
-        parse_mode: "Markdown",
-        reply_markup: keyboard,
-      }
-    );
-  
-    await ctx.answerCallbackQuery();
-  });
-
   handlePayload<[number]>(bot, CallbackAction.TICKET_QR, async (ctx, ticketId) => {
     const userId = ctx.from?.id.toString();
     if (!userId) return;

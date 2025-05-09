@@ -12,7 +12,7 @@ export function handleNavigationCallbacks(bot: Bot<SharedContext, Api<RawApi>>) 
     await ctx.answerCallbackQuery();
   
     const keyboard = new InlineKeyboard()
-      .text("📜 Список мероприятий", CallbackAction.SHOW_EVENTS)
+      .text("📜 Список мероприятий", CallbackAction.EVENTS_CHOICE_CATEGORY)
       .row()
       .text("🎟️ Мои бронирования", CallbackAction.MY_BOOKINGS)
       .row()

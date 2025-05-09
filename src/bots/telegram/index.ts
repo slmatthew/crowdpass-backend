@@ -6,6 +6,7 @@ import { handleTicketCallbacks } from "./handlers/ticketHandlers";
 import { handleNavigationCallbacks } from "./handlers/navigationHandlers";
 import { handleText } from "./handlers/textHandlers";
 import { SharedContext, SessionData } from "@/types/grammy/SessionData";
+import { handleEventsCallbacks } from "./handlers/eventsHandlers";
 
 const bot = new Bot<SharedContext>(process.env.TELEGRAM_BOT_TOKEN as string);
 
@@ -44,7 +45,10 @@ bot.command('mytickets', cmd.myticketsCommand);
 bot.command('mybookings', cmd.mybookingsCommand);
 bot.command('cancel', cmd.cancelCommand);
 
+bot.command('test', cmd.testCommand);
+
 /* callbacks */
+handleEventsCallbacks(bot);
 handleBookingCallbacks(bot);
 handleTicketCallbacks(bot);
 handleNavigationCallbacks(bot);

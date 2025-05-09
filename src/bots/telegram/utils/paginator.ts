@@ -6,6 +6,7 @@ import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
 import { PAGE_SIZE } from "@/constants/appConstants";
 import { callbackPayloads } from "./callbackPayloads";
 import { CallbackAction } from "../constants/callbackActions";
+import dayjs from "dayjs";
 
 export async function sendBookingsPage(ctx: CommandContext<SharedContext>|CallbackQueryContext<SharedContext>, userId: string, page: number, isEdit = false) {
   const user = ctx.sfx.user;
@@ -42,7 +43,7 @@ export async function sendBookingsPage(ctx: CommandContext<SharedContext>|Callba
     const event = booking.bookingTickets[0]?.ticket.ticketType.event;
   
     if (event) {
-      text += `*${startIndex + index + 1}.* ${event.name}\n📅 ${event.startDate.toLocaleDateString()} | 📍 ${event.location}\n`;
+      text += `*${startIndex + index + 1}.* ${event.name}\n📅 ${dayjs(event.startDate).format("DD.MM.YYYY")} | 📍 ${event.location}\n`;
   
       const ticketGroups = booking.bookingTickets.reduce((acc, bt) => {
         const type = bt.ticket.ticketType.name;
@@ -118,7 +119,7 @@ export async function sendEventsPage(ctx: CommandContext<Context>|CallbackQueryC
 
   eventsPage.forEach((event, index) => {
     const eventNumber = startIndex + index + 1;
-    text += `${eventNumber}. ${event.name} (${event.startDate.toLocaleDateString()})\n`;
+    text += `${eventNumber}. ${event.name} (${dayjs(event.startDate).format("DD.MM.YYYY")})\n`;
     keyboard.text(`${eventNumber}`, callbackPayloads.eventDetails(event.id, page));
   });    
 

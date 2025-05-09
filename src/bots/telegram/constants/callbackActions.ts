@@ -1,16 +1,20 @@
 export enum CallbackAction {
-  /* главное меню */
-  SHOW_EVENTS = "show_events",
-  MY_BOOKINGS = "my_bookings",
-  MY_TICKETS = "my_tickets",
-
   /* глобальная навигация */
   GO_HOME = "go_home",
 
   /* мероприятия */
+  EVENTS_ALL = "ev_all",
+  EVENTS_CHOICE_CATEGORY = "ev_choice_ctg",
   EVENTS_PAGE = "ev_page",
+  EVENTS_CATEGORIED_PAGE = "ev_p_ctg",
+  EVENTS_SUBCATEGORIED_PAGE = "ev_p_subctg",
   EVENT_DETAILS = "ev_details",
-  EVENT_NAVIGATE = "ev_navigate",
+  EVENT_NAVIGATE = CallbackAction.EVENT_DETAILS,
+  EVENT_DETAILS_CATEGORY = "ev_d_ctg",
+  EVENT_DETAILS_SUBCATEGORY = "ev_d_subctg",
+  EVENT_CATEGORY = "ev_ctg",
+  EVENT_GET_CATEGORY = "ev_get_ctg",
+  EVENT_GET_SUBCATEGORY = "ev_get_subctg",
 
   /* бронирования */
   MY_BOOKINGS_PAGE = "mbk_page", // страница бронирований
@@ -22,4 +26,9 @@ export enum CallbackAction {
 
   /* билеты */
   TICKET_QR = "tk_qr", // мои билеты
+
+  /* главное меню */
+  SHOW_EVENTS = CallbackAction.EVENTS_ALL,
+  MY_BOOKINGS = "my_bookings",
+  MY_TICKETS = "my_tickets",
 }

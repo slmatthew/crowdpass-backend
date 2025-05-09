@@ -1,6 +1,7 @@
 import { CommandContext, Context } from "grammy";
-import { sendEventsPage } from "../utils/paginator";
+import { sendAllEvents } from "../controllers/eventsController";
+import { SharedContext } from "@/types/grammy/SessionData";
 
-export const eventsCommand = async (ctx: CommandContext<Context>) => {
-  await sendEventsPage(ctx, 1);
+export const eventsCommand = async (ctx: CommandContext<SharedContext>) => {
+  await sendAllEvents(ctx);
 };
