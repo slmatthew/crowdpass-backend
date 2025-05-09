@@ -10,11 +10,11 @@ import { TicketService } from "@/services/ticketService";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { CallbackAction } from "../constants/callbackActions";
 import { callbackPayloads } from "../utils/callbackPayloads";
+import { handlePayload } from "../utils/handlePayload";
+import { number } from "zod";
 
 export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
-  bot.callbackQuery(new RegExp(`^${CallbackAction.BOOKING_START}_(\\d+)_(\\d+)$`), async (ctx) => {
-    const eventId = Number(ctx.match[1]);
-    const fromPage = Number(ctx.match[2]);
+  handlePayload<[number, number]>(bot, CallbackAction.BOOKING_START, async (ctx, eventId, fromPage) => {
     const userId = ctx.from?.id.toString();
   
     if (!userId) {
@@ -70,10 +70,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   /**
    * @TODO EVENT_DETAILS = EVENT_NAVIGATE
    */
-  bot.callbackQuery(new RegExp(`^${CallbackAction.EVENT_NAVIGATE}_(\\d+)_(\\d+)$`), async (ctx) => {
-    const eventId = Number(ctx.match[1]);
-    const fromPage = Number(ctx.match[2]);
-  
+  handlePayload<[number, number]>(bot, CallbackAction.EVENT_NAVIGATE, async (ctx, eventId, fromPage) => {
     const event = await EventService.getEventById(eventId);
   
     if (!event) {
@@ -97,8 +94,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     await ctx.answerCallbackQuery();
   });
 
-  bot.callbackQuery(new RegExp(`^${CallbackAction.BOOKING_SELECT_TYPE}_(\\d+)$`), async (ctx) => {
-    const ticketTypeId = Number(ctx.match[1]);
+  handlePayload<[number]>(bot, CallbackAction.BOOKING_SELECT_TYPE, async (ctx, ticketTypeId) => {
     const userId = ctx.from?.id.toString();
   
     if (!userId || !bookingSessions[userId]) {
@@ -116,9 +112,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     await ctx.answerCallbackQuery();
   });
 
-  bot.callbackQuery(new RegExp(`^${CallbackAction.MY_BOOKING_CANCEL}_(\\d+)_(\\d+)$`), async (ctx) => {
-    const bookingId = Number(ctx.match[1]);
-    const page = Number(ctx.match[2]);
+  handlePayload<[number, number]>(bot, CallbackAction.MY_BOOKING_CANCEL, async (ctx, bookingId, page) => {
     const userId = ctx.from?.id.toString();
 
     if (!userId || !ctx.sfx.user?.id) {
@@ -141,16 +135,14 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     }
   });
 
-  bot.callbackQuery(new RegExp(`^${CallbackAction.MY_BOOKINGS_PAGE}_(\\d+)$`), async (ctx) => {
-    const page = Number(ctx.match[1]);
+  handlePayload<[number]>(bot, CallbackAction.MY_BOOKINGS_PAGE, async (ctx, page) => {
     const userId = ctx.from?.id.toString();
     if (!userId) return;
     await ctx.answerCallbackQuery();
     await sendBookingsPage(ctx, userId, page, true);
   });
 
-  bot.callbackQuery(new RegExp(`^${CallbackAction.BOOKING_CONFIRM}_(\\d+)$`), async (ctx) => {
-    const userId = ctx.match[1];
+  handlePayload<[number]>(bot, CallbackAction.BOOKING_CONFIRM, async (ctx, userId) => {
     if (!userId || !bookingSessions[userId]) {
       await ctx.answerCallbackQuery();
       await ctx.reply("⚠️ Бронирование не найдено или уже отменено.");
@@ -199,8 +191,7 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     }
   });
 
-  bot.callbackQuery(new RegExp(`^${CallbackAction.BOOKING_CANCEL}_(\\d+)$`), async (ctx) => {
-    const userId = ctx.match[1];
+  handlePayload<[number]>(bot, CallbackAction.BOOKING_CANCEL, async (ctx, userId) => {
     if (!userId) return;
 
     if (bookingTimeouts[userId]) {

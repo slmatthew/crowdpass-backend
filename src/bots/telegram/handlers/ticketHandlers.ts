@@ -7,10 +7,11 @@ import { TicketService } from "@/services/ticketService";
 import { extraGoToHomeKeyboard } from "../markups/extraGoToHomeKeyboard";
 import { CallbackAction } from "../constants/callbackActions";
 import { callbackPayloads } from "../utils/callbackPayloads";
+import { handlePayload } from "../utils/handlePayload";
+import { number } from "zod";
 
 export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
-  bot.callbackQuery(new RegExp(`^${CallbackAction.EVENTS_PAGE}_(\\d+)$`), async (ctx) => {
-    const page = Number(ctx.match[1]);
+  handlePayload<[number]>(bot, CallbackAction.EVENTS_PAGE, async (ctx, page) => {
     await ctx.answerCallbackQuery();
     await sendEventsPage(ctx, page, true);
   });
@@ -18,10 +19,7 @@ export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   /**
    * @TODO EVENT_DETAILS = EVENT_NAVIGATE
    */
-  bot.callbackQuery(new RegExp(`^${CallbackAction.EVENT_DETAILS}_(\\d+)_(\\d+)$`), async (ctx) => {
-    const eventId = Number(ctx.match[1]);
-    const fromPage = Number(ctx.match[2]);
-  
+  handlePayload<[number, number]>(bot, CallbackAction.EVENT_DETAILS, async (ctx, eventId, fromPage) => {
     const event = await EventService.getEventById(eventId);
   
     if (!event) {
@@ -45,8 +43,7 @@ export function handleTicketCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
     await ctx.answerCallbackQuery();
   });
 
-  bot.callbackQuery(new RegExp(`^${CallbackAction.TICKET_QR}_(\\d+)$`), async (ctx) => {
-    const ticketId = Number(ctx.match[1]);
+  handlePayload<[number]>(bot, CallbackAction.TICKET_QR, async (ctx, ticketId) => {
     const userId = ctx.from?.id.toString();
     if (!userId) return;
   
