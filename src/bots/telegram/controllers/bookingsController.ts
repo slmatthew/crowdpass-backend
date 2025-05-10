@@ -13,7 +13,7 @@ import { CallbackAction } from "../constants/callbackActions";
 import { SharedContext } from "@/types/grammy/SessionData";
 
 const TELEGRAM_PAYMENTS_LIVE = process.env.NODE_ENV !== 'development';
-const TELEGRAM_PAYMENTS_TOKEN = TELEGRAM_PAYMENTS_LIVE ? process.env.TELEGRAM_PAYMENTS_TEST_TOKEN : process.env.TELEGRAM_PAYMENTS_LIVE_TOKEN;
+const TELEGRAM_PAYMENTS_TOKEN = TELEGRAM_PAYMENTS_LIVE ? process.env.TELEGRAM_PAYMENTS_LIVE_TOKEN : process.env.TELEGRAM_PAYMENTS_TEST_TOKEN;
 
 export async function sendMyBookings(ctx: ControllerContext, page: number = 1) {
   const user = ctx.sfx.user;
@@ -178,7 +178,7 @@ export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number
   const labeledPrice: { label: string, amount: number }[] = [];
   for(const bkTicket of booking.bookingTickets) {
     price += Number(bkTicket.ticket.ticketType.price);
-    labeledPrice.push({ label: `Билет ${bkTicket.ticket.ticketType.name} #${bkTicket.ticket.id}`, amount: Number(bkTicket.ticket.ticketType.price) * 100 });
+    labeledPrice.push({ label: `${bkTicket.ticket.ticketType.name} #${bkTicket.ticket.id}`, amount: Number(bkTicket.ticket.ticketType.price) * 100 });
   }
 
   /**
@@ -216,7 +216,7 @@ export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number
 }
 
 export async function sendMyBookingPayPreCheckout(ctx: ControllerContext) {
-  if(!ctx.sfx.user || !ctx.preCheckoutQuery) return;
+  if(!ctx.sfx.user || !ctx.preCheckoutQuery) return await ctx.answerPreCheckoutQuery(false, 'Произошла ошибка');
 
   const bookingId = Number(ctx.match[1]);
   const userId = Number(ctx.match[2]);
@@ -234,7 +234,7 @@ export async function sendMyBookingPaySuccess(ctx: SharedContext) {
   const payment = ctx.message?.successful_payment;
   if(!payment) return await ctx.reply(`❌ Произошла ошибка`);;
 
-  const match = payment.invoice_payload.match(/^(\d+)-(\d+)-payment$/);
+  const match = payment.invoice_payload.match(/^(\d+)-(\d+)-booking$/);
   if(!match) return await ctx.reply(`❌ Произошла ошибка`);;
 
   const bookingId = Number(match[1]);

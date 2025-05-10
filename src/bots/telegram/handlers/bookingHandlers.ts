@@ -17,6 +17,6 @@ export function handleBookingCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   handlePayload<[number]>(bot, CallbackAction.BOOKING_CONFIRM, sendBookingConfirm);
   handlePayload<[number]>(bot, CallbackAction.BOOKING_CANCEL, sendBookingCancel);
 
-  bot.preCheckoutQuery(/^(\d+)-(\d+)-payment$/, sendMyBookingPayPreCheckout);
+  bot.preCheckoutQuery(/^(\d+)-(\d+)-booking$/, sendMyBookingPayPreCheckout);
   bot.on('message:successful_payment', sendMyBookingPaySuccess);
 }
