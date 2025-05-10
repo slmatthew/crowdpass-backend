@@ -20,6 +20,26 @@ export class TicketService {
     });
   }
 
+  static async isTicketBoughtByUser(ticketId: number, userId: number): Promise<boolean> {
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: ticketId },
+      include: {
+        bookingTickets: {
+          where: {
+            booking: {
+              status: 'PAID',
+              userId
+            }
+          }
+        }
+      }
+    });
+
+    if(!ticket || !ticket.bookingTickets) return false;
+
+    return ticket.bookingTickets.length > 0;
+  }
+
   static async updateStatus(ticketId: number, status: TicketStatus) {
     return prisma.ticket.update({
       where: { id: ticketId },

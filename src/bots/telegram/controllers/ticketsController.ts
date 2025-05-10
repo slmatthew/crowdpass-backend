@@ -112,6 +112,13 @@ export async function sendTicketQr(ctx: ControllerContext, ticketId: number) {
     return;
   }
 
+  const ticketBought = await TicketService.isTicketBoughtByUser(ticket.id, ctx.sfx.user!.id)
+  if(!ticketBought) {
+    await ctx.answerCallbackQuery({ text: "Вы не можете посмотреть этот QR-код" });
+    await sendMyTickets(ctx);
+    return;
+  }
+
   await ctx.editMessageText('Отправляю QR-код 👇🏻');
 
   if(ctx.chat) await ctx.api.sendChatAction(ctx.chat.id, 'upload_photo');
