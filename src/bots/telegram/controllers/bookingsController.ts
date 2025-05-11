@@ -11,6 +11,8 @@ import { PAGE_SIZE } from "@/constants/appConstants";
 import dayjs from "dayjs";
 import { CallbackAction } from "../constants/callbackActions";
 import { SharedContext } from "@/types/grammy/SessionData";
+import { currencyCache } from "../utils/currencyCache";
+import { formatAmount } from "../utils/formatAmount";
 
 const TELEGRAM_PAYMENTS_LIVE = process.env.NODE_ENV !== 'development';
 const TELEGRAM_PAYMENTS_TOKEN = TELEGRAM_PAYMENTS_LIVE ? process.env.TELEGRAM_PAYMENTS_LIVE_TOKEN : process.env.TELEGRAM_PAYMENTS_TEST_TOKEN;
@@ -180,19 +182,15 @@ export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number
     price += Number(bkTicket.ticket.ticketType.price);
     labeledPrice.push({ label: `${bkTicket.ticket.ticketType.name} #${bkTicket.ticket.id}`, amount: Number(bkTicket.ticket.ticketType.price) * 100 });
   }
+  price = price * 100;
 
-  /**
-   * https://core.telegram.org/bots/payments#supported-currencies
-   * на момент написания комментария минмально возможная сумма оплаты в рублях
-   * составляет 87.73 RUB. во избежание получения ошибок со стороны Telegram
-   * сделана эта проверка, предусматривающая прекращение процесса оплаты бронирования,
-   * если общая стоимость билета меньше 100 RUB
-   */
-  if(price < 100) {
+  const currency = await currencyCache.getCurrency();
+  if(price <= Number(currency.min_amount) || price >= Number(currency.max_amount)) {
     if(TELEGRAM_PAYMENTS_LIVE) {
       await ctx.answerCallbackQuery('Оплата невозможна');
       await ctx.reply(
-        `⚠️ К сожалению, это бронирование невозможно оплатить в Telegram.\n\nОбратитесь в /support для получения инструкций к оплате. Не забудьте указать номер брони: ${booking.id}`,
+        `⚠️ К сожалению, это бронирование невозможно оплатить в Telegram.\n\n` +
+        `Обратитесь в /support для получения инструкций к оплате. Не забудьте указать номер брони: ${booking.id}`,
         { reply_markup: extraGoToHomeKeyboard }
       );
     } else {
@@ -205,7 +203,7 @@ export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number
   await ctx.api.sendInvoice(
     ctx.chat!.id,
     `CrowdPass №B${booking.id}`,
-    `Ваше бронирование №${booking.id} включает в себя билеты (${booking.bookingTickets.length} шт.) на мероприятие «${event.name}» общей стоимостью ${price} ₽`,
+    `Ваше бронирование №${booking.id} включает в себя билеты (${booking.bookingTickets.length} шт.) на мероприятие «${event.name}» общей стоимостью ${formatAmount(price, currency)}`,
     `${booking.id}-${user.id}-booking`,
     'RUB',
     labeledPrice,
@@ -224,7 +222,7 @@ export async function sendMyBookingPayPreCheckout(ctx: ControllerContext) {
   const booking = await BookingService.getById(bookingId);
 
   if(userId !== ctx.sfx.user.id || !booking || booking.userId !== ctx.sfx.user.id || booking.status !== "ACTIVE") {
-    return await ctx.answerPreCheckoutQuery(false, { error_message: 'Вы не можете оплатить это бронирование. Возможно, бронирование уже оплачено' });
+    return await ctx.answerPreCheckoutQuery(false, { error_message: 'Вы не можете оплатить это бронирование. Возможно, бронирование уже оплачено или отменено' });
   }
 
   await ctx.answerPreCheckoutQuery(true); 
