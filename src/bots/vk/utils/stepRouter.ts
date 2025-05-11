@@ -1,5 +1,5 @@
 import { MessageContext } from "vk-io";
-import { bookingSessions } from "./sessions/bookingSessions";
+import { bookingSessions } from "../sessions/bookingSessions";
 import { TicketService } from "@/services/ticketService";
 import { KeyboardBuilder } from "vk-io";
 

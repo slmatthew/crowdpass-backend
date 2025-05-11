@@ -1,10 +1,10 @@
 import { VK } from 'vk-io';
-import { VkRouter } from './router';
+import { VkRouter } from './utils/router';
 import { UserService } from '@/services/userService';
 import { handleStart } from './commands/start';
 import { handleFallback } from './handlers/fallbackHandler'
 import { handleLinkConfirm } from './handlers/linkConfirmHandler';
-import { StepRouter } from './stepRouter';
+import { StepRouter } from './utils/stepRouter';
 import { handleLink } from './commands/link';
 import { handlePagination, handleEventDetails, handleShowQr } from './handlers/ticketHandlers';
 import { handleEvents } from './commands/events';
