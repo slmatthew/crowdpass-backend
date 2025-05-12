@@ -7,6 +7,7 @@ import { handleEvents } from './handlers/eventsHandler';
 import { handleBookings } from './handlers/bookingsHandler';
 import { handleProfile } from './handlers/profileHandler';
 import { handleNavigation } from './handlers/navigationHandler';
+import { handleTickets } from './handlers/ticketsHandler';
 
 const vk = new VK({
   token: process.env.VK_BOT_TOKEN!,
@@ -22,6 +23,7 @@ export async function startVkBot() {
   handleNavigation(router);
   handleEvents(router);
   handleBookings(router);
+  handleTickets(router);
   handleProfile(router);
 
   router.setFallback(handleFallback);

@@ -17,11 +17,7 @@ export interface ActionReplyPhoto {
   keyboard?: AbstractKeyboard;
 }
 
-type ControllerResponseAction = 
-  | ActionReply
-  | ActionReplyPhoto;
-
 export interface ControllerResponse {
   ok: boolean;
-  action: ControllerResponseAction;
+  action: ActionReply | ActionReplyPhoto;
 }
