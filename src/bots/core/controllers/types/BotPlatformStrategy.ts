@@ -1,6 +1,8 @@
 import { CallbackAction } from "../../constants/callbackActions";
 import { ControllerResponse } from "./ControllerResponse";
 import { CallbackPayloadsObject, CallbackPayloadsString } from "./CallbackPayloadsTypes";
+import { ControllerContext } from "@/bots/telegram/controllers/ControllerContext";
+import { MessageContext } from "vk-io";
 
 /**
  * из-за различий в обработке payloads в телеграме и вконтакте
@@ -12,7 +14,10 @@ import { CallbackPayloadsObject, CallbackPayloadsString } from "./CallbackPayloa
  */
 export type CallbackActionFunction = (action: CallbackAction) => string | { action: string };
 
-export interface BotPlatformStrategy<Context, CallbackPayloadsType extends CallbackPayloadsObject | CallbackPayloadsString> {
+export type Context = ControllerContext | MessageContext;
+export type CallbackPayloadsType = CallbackPayloadsObject | CallbackPayloadsString;
+
+export interface BotPlatformStrategy<Context, CallbackPayloadsType> {
   callbackAction: CallbackActionFunction;
   callbackPayloads: CallbackPayloadsType;
 

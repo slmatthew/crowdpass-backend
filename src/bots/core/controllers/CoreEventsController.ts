@@ -6,7 +6,6 @@ import { PAGE_SIZE } from "@/constants/appConstants";
 import { CallbackAction } from "../constants/callbackActions";
 import { chunkArray } from "../utils/chunkArray";
 import { KeyboardBuilder } from "../ui/KeyboardBuilder";
-import { CallbackPayloadFunction } from "./types/BotPlatformStrategy";
 import { ActionReply, ControllerResponse } from "./types/ControllerResponse";
 import { CoreController } from "./CoreController";
 
@@ -14,7 +13,7 @@ export class CoreEventsController extends CoreController {
   private sendChoice<T extends Category | Subcategory>(
     entities: T[],
     entityLabel: 'категорию' | 'подкатегорию',
-    nextPage: CallbackPayloadFunction,
+    nextPage: (...args: any[]) => string | { action: string },
     skipPage: string | { action: string },
   ): ControllerResponse {
     const rows = chunkArray<T>(entities, 2);
