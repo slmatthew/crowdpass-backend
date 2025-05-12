@@ -1,14 +1,12 @@
 import { VK } from 'vk-io';
 import { VkRouter } from './routers/router';
 import { UserService } from '@/services/userService';
-import { handleStart } from './commands/start';
 import { handleFallback } from './handlers/fallbackHandler'
-import { handleLinkConfirm } from './handlers/linkConfirmHandler';
 import { StepRouter } from './routers/stepRouter';
-import { handleLink } from './commands/link';
 import { handleEvents } from './handlers/eventsHandler';
 import { handleBookings } from './handlers/bookingsHandler';
-import { bookingSessionService } from '../core/services/BookingSessionService';
+import { handleProfile } from './handlers/profileHandler';
+import { handleNavigation } from './handlers/navigationHandler';
 
 const vk = new VK({
   token: process.env.VK_BOT_TOKEN!,
@@ -21,17 +19,10 @@ export async function startVkBot() {
 
   // === Регистрируем команды ===
 
-  
-
-  router.registerTextCommand('/start', handleStart);
-  router.registerTextCommand('начать', handleStart);
-  router.registerTextCommand('/link', handleLink);
-
-  router.registerPayloadCommand('confirm_link', handleLinkConfirm);
-  router.registerPayloadCommand('link_telegram', handleLink);
-
+  handleNavigation(router);
   handleEvents(router);
   handleBookings(router);
+  handleProfile(router);
 
   router.setFallback(handleFallback);
 
