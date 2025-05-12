@@ -5,7 +5,7 @@ import { vk } from "@/bots/vk";
 import { UserService } from "@/services/userService";
 import { Platform } from "@prisma/client";
 import { UserError } from "@/types/errors/UserError";
-import { sendLinkRequest } from "@/bots/utils/sendLinkRequest";
+import { sendLinkRequest } from "@/bots/core/utils/sendLinkRequest";
 import { TicketService } from "@/services/ticketService";
 import { bookingSessionService } from "@/bots/core/services/BookingSessionService";
 import { TelegramStrategy } from "../controllers/TelegramStrategy";

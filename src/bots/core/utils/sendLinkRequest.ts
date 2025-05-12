@@ -1,6 +1,6 @@
 import { Platform } from "@prisma/client";
-import { vk } from "../vk";
-import { telegram } from "../telegram";
+import { vk } from "../../vk";
+import { telegram } from "../../telegram";
 import { InlineKeyboard } from "grammy";
 
 export async function sendLinkRequest(platform: Platform, platformUserId: number|string, code: string) {
