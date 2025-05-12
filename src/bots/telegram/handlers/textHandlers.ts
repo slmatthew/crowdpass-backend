@@ -1,6 +1,5 @@
 import { Bot, Api, RawApi, InlineKeyboard } from "grammy";
 import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
-import { bookingSessions } from "../sessions/bookingSession";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { vk } from "@/bots/vk";
 import { UserService } from "@/services/userService";
@@ -8,7 +7,8 @@ import { Platform } from "@prisma/client";
 import { UserError } from "@/types/errors/UserError";
 import { sendLinkRequest } from "@/bots/utils/sendLinkRequest";
 import { TicketService } from "@/services/ticketService";
-import { callbackPayloads } from "../utils/callbackPayloads";
+import { bookingSessionService } from "@/bots/core/services/BookingSessionService";
+import { TelegramStrategy } from "../controllers/TelegramStrategy";
 
 export function handleText(bot: Bot<SharedContext, Api<RawApi>>) {
   bot.on("message:text", async (ctx) => {
@@ -58,10 +58,10 @@ export function handleText(bot: Bot<SharedContext, Api<RawApi>>) {
       return;
     }
 
-    const userId = ctx.from?.id.toString();
-    const session = bookingSessions[userId!];
+    const user = ctx.sfx.user!;
+    const session = bookingSessionService.getSession(user.id);
   
-    if (!session || !session.ticketTypeId) {
+    if (!session || !session.ticketTypeId || session.step !== 'ask_count') {
       return await ctx.reply("❓ Я не понял вас.\n\nПожалуйста, используйте команды или напишите /help для списка доступных команд.", extraGoToHomeKeyboard);
     }
   
@@ -79,11 +79,11 @@ export function handleText(bot: Bot<SharedContext, Api<RawApi>>) {
       return;
     }
 
-    bookingSessions[userId].ticketsCount = count;
+    bookingSessionService.setSession(user.id, { ...session, step: 'end', ticketsCount: count });
 
     const keyboard = new InlineKeyboard()
-      .text("✅ Подтвердить", callbackPayloads.bookingConfirm(userId))
-      .text("❌ Отменить", callbackPayloads.bookingCancel(userId));
+      .text("✅ Подтвердить", TelegramStrategy.callbackPayloads.bookingConfirm(user.id) as string)
+      .text("❌ Отменить", TelegramStrategy.callbackPayloads.bookingCancel(user.id) as string);
 
     await ctx.react('👌');
 

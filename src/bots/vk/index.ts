@@ -1,16 +1,14 @@
 import { VK } from 'vk-io';
-import { VkRouter } from './utils/router';
+import { VkRouter } from './routers/router';
 import { UserService } from '@/services/userService';
 import { handleStart } from './commands/start';
 import { handleFallback } from './handlers/fallbackHandler'
 import { handleLinkConfirm } from './handlers/linkConfirmHandler';
-import { StepRouter } from './utils/stepRouter';
+import { StepRouter } from './routers/stepRouter';
 import { handleLink } from './commands/link';
-import { handlePagination, handleEventDetails, handleShowQr } from './handlers/ticketHandlers';
-import { handleEvents } from './commands/events';
-import { handleBookingStart, handleTicketTypeSelect, handleBookingConfirm, handleBookingCancel } from './handlers/bookingHandlers';
-import { sendBookingsPage } from './commands/bookings';
-import { sendTicketsPage } from './commands/mytickets';
+import { handleEvents } from './handlers/eventsHandler';
+import { handleBookings } from './handlers/bookingsHandler';
+import { bookingSessionService } from '../core/services/BookingSessionService';
 
 const vk = new VK({
   token: process.env.VK_BOT_TOKEN!,
@@ -23,6 +21,8 @@ export async function startVkBot() {
 
   // === Регистрируем команды ===
 
+  
+
   router.registerTextCommand('/start', handleStart);
   router.registerTextCommand('начать', handleStart);
   router.registerTextCommand('/link', handleLink);
@@ -30,50 +30,8 @@ export async function startVkBot() {
   router.registerPayloadCommand('confirm_link', handleLinkConfirm);
   router.registerPayloadCommand('link_telegram', handleLink);
 
-  router.registerTextPattern(/^\/?(events|мероприятия)(\s+(\d+))?$/i, (ctx, match) => {
-    const page = match[3] ? Number(match[3]) : 1;
-    return handleEvents(ctx, page);
-  });  
-
-  router.registerPayloadCommand('show_events', handleEvents);
-
-  router.registerPayloadPattern(/^page_(\d+)$/, (ctx, match) =>
-    handlePagination(ctx, Number(match[1]))
-  );
-  
-  router.registerPayloadPattern(/^event_(\d+)_(\d+)$/, (ctx, match) =>
-    handleEventDetails(ctx, Number(match[1]), Number(match[2]))
-  );
-  
-  router.registerPayloadPattern(/^show_qr_(\d+)$/, (ctx, match) =>
-    handleShowQr(ctx, Number(match[1]))
-  );
-
-  router.registerPayloadPattern(/^book_(\d+)_(\d+)$/, (ctx, m) =>
-    handleBookingStart(ctx, Number(m[1]), Number(m[2]))
-  );
-  
-  router.registerPayloadPattern(/^selectType_(\d+)$/, (ctx, m) =>
-    handleTicketTypeSelect(ctx, Number(m[1]))
-  );
-  
-  router.registerPayloadPattern(/^confirm_booking_(\d+)$/, (ctx, m) =>
-    handleBookingConfirm(ctx, m[1])
-  );
-  
-  router.registerPayloadPattern(/^cancel_booking_(\d+)$/, (ctx, m) =>
-    handleBookingCancel(ctx, m[1])
-  );
-
-  router.registerPayloadCommand("my_bookings", (ctx) =>
-    sendBookingsPage(ctx, 1)
-  );
-  
-  router.registerPayloadPattern(/^mybookings_page_(\d+)$/, (ctx, m) =>
-    sendBookingsPage(ctx, Number(m[1]))
-  );  
-
-  router.registerPayloadCommand("my_tickets", sendTicketsPage);
+  handleEvents(router);
+  handleBookings(router);
 
   router.setFallback(handleFallback);
 

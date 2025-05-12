@@ -32,7 +32,10 @@ export async function sendTicketsPage(ctx: MessageContext) {
   let text = `🎫 Ваши билеты:\n\n`;
   const keyboard = new KeyboardBuilder();
 
+  let total = 0;
   tickets.forEach((t, i) => {
+    total += 1;
+    if(total > 3) return;
     text += `*${i + 1}.* ${t.eventName}\n📅 ${new Date(t.date).toLocaleDateString()} | 📍 ${t.location}\nКатегория: ${t.type}\n\n`;
     keyboard.textButton({
       label: `🔎 QR ${i + 1}`,
