@@ -8,8 +8,9 @@ import dayjs from "dayjs";
 import { BookingError } from "@/types/errors/BookingError";
 import { bookingSessionService } from "@/bots/core/services/BookingSessionService";
 import { TicketService } from "@/services/ticketService";
+import { PlatformContext, PlatformPayloads } from "./types/BotPlatformStrategy";
 
-export class CoreBookingController extends CoreController {
+export class CoreBookingController<C extends PlatformContext, P extends PlatformPayloads> extends CoreController<C, P> {
   async sendMyBookings(user: User, page: number = 1): Promise<ControllerResponse> {
     const bookings = await BookingService.getByUserId(user.id);
 

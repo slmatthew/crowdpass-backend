@@ -1,9 +1,9 @@
 export interface CallbackPayloadsString {
-  eventsPage: (page: number, _: number) => string,
+  eventsPage: (page: number, _?: number) => string,
   eventsCategoriedPage: (page: number, entityId: number) => string,
   eventsSubcategoriedPage: (page: number, entityId: number) => string,
   
-  eventDetails: (eventId: number, page: number, _: number) => string,
+  eventDetails: (eventId: number, page: number, _?: number) => string,
   eventDetailsCategory: (eventId: number, page: number, entityId: number) => string,
   eventDetailsSubcategory: (eventId: number, page: number, entityId: number) => string,
 

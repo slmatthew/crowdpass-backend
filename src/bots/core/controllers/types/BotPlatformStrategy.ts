@@ -14,12 +14,12 @@ import { MessageContext } from "vk-io";
  */
 export type CallbackActionFunction = (action: CallbackAction) => string | { action: string };
 
-export type Context = ControllerContext | MessageContext;
-export type CallbackPayloadsType = CallbackPayloadsObject | CallbackPayloadsString;
+export type PlatformPayloads = CallbackPayloadsString | CallbackPayloadsObject;
+export type PlatformContext = ControllerContext | MessageContext;
 
-export interface BotPlatformStrategy<Context, CallbackPayloadsType> {
+export interface BotPlatformStrategy<Context extends PlatformContext, Payloads extends PlatformPayloads> {
   callbackAction: CallbackActionFunction;
-  callbackPayloads: CallbackPayloadsType;
+  callbackPayloads: Payloads;
 
   doActionReply: (ctx: Context, result: ControllerResponse) => any;
 }

@@ -8,8 +8,9 @@ import { chunkArray } from "../utils/chunkArray";
 import { KeyboardBuilder } from "../ui/KeyboardBuilder";
 import { ActionReply, ControllerResponse } from "./types/ControllerResponse";
 import { CoreController } from "./CoreController";
+import { PlatformContext, PlatformPayloads } from "./types/BotPlatformStrategy";
 
-export class CoreEventsController extends CoreController {
+export class CoreEventsController<C extends PlatformContext, P extends PlatformPayloads> extends CoreController<C, P> {
   private sendChoice<T extends Category | Subcategory>(
     entities: T[],
     entityLabel: 'категорию' | 'подкатегорию',
@@ -59,22 +60,12 @@ export class CoreEventsController extends CoreController {
     );
   }
 
-  /**
-   * 
-   * @TODO fix types for gEventDetails & gEventsPage
-   * @param events 
-   * @param page 
-   * @param entityId 
-   * @param gEventDetails (eventId: number, page: number, entityId: number) => string | { action: string }
-   * @param gEventsPage (page: number, entityId: number) => string | { action: string }
-   * @returns 
-   */
   private async sendEvents(
     events: Event[],
     page: number,
     entityId: number = 0,
-    gEventDetails = this.strategy.callbackPayloads.eventDetails,
-    gEventsPage = this.strategy.callbackPayloads.eventsPage,
+    gEventDetails: PlatformPayloads['eventDetails'] | PlatformPayloads['eventDetailsCategory'] | PlatformPayloads['eventDetailsSubcategory'] = this.strategy.callbackPayloads.eventDetails,
+    gEventsPage: PlatformPayloads['eventsPage'] | PlatformPayloads['eventsCategoriedPage'] | PlatformPayloads['eventsSubcategoriedPage'] = this.strategy.callbackPayloads.eventsPage,
   ): Promise<ControllerResponse> {
     if (events.length === 0) {
       return this.badResult("Пока нет доступных мероприятий 😔");
