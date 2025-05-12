@@ -1,13 +1,14 @@
 import { BotPlatformStrategy } from "@/bots/core/controllers/types/BotPlatformStrategy";
 
 import { CallbackAction } from "@/bots/core/constants/callbackActions";
+import { CallbackPayloadsObject } from "@/bots/core/controllers/types/CallbackPayloadsTypes";
 import { callbackPayloads } from "../utils/callbackPayloads";
 
 import { KeyboardBuilder, MessageContext } from "vk-io";
 import { ControllerResponse, ActionReply } from "@/bots/core/controllers/types/ControllerResponse";
 import { convertKeyboard } from "../utils/convertKeyboard";
 
-export const VkStrategy: BotPlatformStrategy<MessageContext> = {
+export const VkStrategy: BotPlatformStrategy<MessageContext, CallbackPayloadsObject> = {
   callbackAction: (action: CallbackAction): { action: string } => ({ action }),
   callbackPayloads,
 

@@ -1,6 +1,7 @@
 import { BotPlatformStrategy } from "@/bots/core/controllers/types/BotPlatformStrategy";
 
 import { CallbackAction } from "@/bots/core/constants/callbackActions";
+import { CallbackPayloadsString } from "@/bots/core/controllers/types/CallbackPayloadsTypes";
 import { callbackPayloads } from "@/bots/core/utils/callbackPayloads";
 
 import { ControllerContext } from "./ControllerContext";
@@ -9,7 +10,7 @@ import { InlineKeyboard } from "grammy";
 import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { convertKeyboard } from "../utils/convertKeyboard";
 
-export const TelegramStrategy: BotPlatformStrategy<ControllerContext> = {
+export const TelegramStrategy: BotPlatformStrategy<ControllerContext, CallbackPayloadsString> = {
   callbackAction: (action: CallbackAction): string => action,
   callbackPayloads,
   

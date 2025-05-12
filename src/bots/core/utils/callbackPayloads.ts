@@ -1,6 +1,7 @@
 import { CallbackAction } from "../constants/callbackActions";
+import { CallbackPayloadsString } from "../controllers/types/CallbackPayloadsTypes";
 
-export const callbackPayloads = {
+export const callbackPayloads: CallbackPayloadsString = {
   eventsPage: (page: number, _: number = 0) => `${CallbackAction.EVENTS_PAGE}_${page}`,
   eventsCategoriedPage: (page: number, entityId: number) => `${CallbackAction.EVENTS_CATEGORIED_PAGE}_${page}_${entityId}`,
   eventsSubcategoriedPage: (page: number, entityId: number) => `${CallbackAction.EVENTS_SUBCATEGORIED_PAGE}_${page}_${entityId}`,
