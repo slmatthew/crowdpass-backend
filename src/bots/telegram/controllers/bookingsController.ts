@@ -1,21 +1,12 @@
-import { TicketService } from "@/services/ticketService";
-import { bookingSessions } from "../sessions/bookingSession";
-import { bookingTimeouts } from "../sessions/bookingTimeouts";
+import { CoreBookingController } from "@/bots/core/controllers/CoreBookingsController";
+import { TelegramStrategy } from "./TelegramStrategy";
 import { ControllerContext } from "./ControllerContext";
-import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { InlineKeyboard } from "grammy";
-import { callbackPayloads } from "../utils/callbackPayloads";
+import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { BookingService } from "@/services/bookingService";
-import { BookingError } from "@/types/errors/BookingError";
-import { PAGE_SIZE } from "@/constants/appConstants";
-import dayjs from "dayjs";
-import { CallbackAction } from "../constants/callbackActions";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { currencyCache } from "../utils/currencyCache";
 import { formatAmount } from "../utils/formatAmount";
-
-import { CoreBookingController } from "@/bots/core/controllers/CoreBookingsController";
-import { TelegramStrategy } from "./TelegramStrategy";
 
 const TELEGRAM_PAYMENTS_LIVE = process.env.NODE_ENV !== 'development';
 const TELEGRAM_PAYMENTS_TOKEN = TELEGRAM_PAYMENTS_LIVE ? process.env.TELEGRAM_PAYMENTS_LIVE_TOKEN : process.env.TELEGRAM_PAYMENTS_TEST_TOKEN;
@@ -73,7 +64,7 @@ export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number
   const user = ctx.sfx.user!;
   const booking = await BookingService.getById(bookingId);
 
-  const keyboard = new InlineKeyboard().text('Вернуться к бронированиям', callbackPayloads.myBookingsPage(page));
+  const keyboard = new InlineKeyboard().text('Вернуться к бронированиям', TelegramStrategy.callbackPayloads.myBookingsPage(page));
 
   const reject = async (text: string) => {
     try {
