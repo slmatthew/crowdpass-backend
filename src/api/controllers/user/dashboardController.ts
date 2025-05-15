@@ -7,7 +7,7 @@ import { Request, Response } from "express";
 export async function me(req: Request, res: Response) {
   if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
 
-  return res.json({ user: formatUser(req.user) });
+  return res.json({ user: req.user });
 }
 
 export async function dashboard(req: Request, res: Response) {

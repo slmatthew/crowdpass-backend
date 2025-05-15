@@ -1,3 +1,4 @@
+import { convertBookingToUserBooking, SharedBooking, UserBooking, UserBookingTicket } from "@/api/types/UserBooking";
 import { telegram } from "@/bots/telegram";
 import { currencyCache } from "@/bots/telegram/utils/currencyCache";
 import { formatAmount } from "@/bots/telegram/utils/formatAmount";
@@ -11,7 +12,9 @@ export async function myBookings(req: Request, res: Response) {
   if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
   
   const bookings = await BookingService.getByUserId(req.user.id);
-  res.json(bookings);
+  const displayBookings: UserBooking[] = bookings.map(convertBookingToUserBooking);
+
+  res.json(displayBookings);
 }
 
 export async function getTelegramInvoiceLink(req: Request, res: Response) {
