@@ -85,15 +85,25 @@ export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number
     return;
   }
 
-  const event = booking.bookingTickets[0].ticket.ticketType.event;
+  const events: string[] = [];
+  booking.bookingTickets.forEach(bt => {
+    const str = `«${bt.ticket.ticketType.event.name}»`;
+    if(events.includes(str)) return;
 
+    events.push(`«${bt.ticket.ticketType.event.name}»`);
+  });
+
+  const event = events.join(', ');
+  
   let price: number = 0;
   const labeledPrice: { label: string, amount: number }[] = [];
   for(const bkTicket of booking.bookingTickets) {
     price += Number(bkTicket.ticket.ticketType.price);
-    labeledPrice.push({ label: `${bkTicket.ticket.ticketType.name} #${bkTicket.ticket.id}`, amount: Number(bkTicket.ticket.ticketType.price) * 100 });
+    labeledPrice.push({
+      label: `${bkTicket.ticket.ticketType.name} #${bkTicket.ticket.ticketType.event.id}-${bkTicket.ticket.id}`,
+      amount: Number(bkTicket.ticket.ticketType.price) * 100
+    });
   }
-  price = price * 100;
 
   const currency = await currencyCache.getCurrency();
   if(price <= Number(currency.min_amount) || price >= Number(currency.max_amount)) {
@@ -114,7 +124,7 @@ export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number
   await ctx.api.sendInvoice(
     ctx.chat!.id,
     `CrowdPass №B${booking.id}`,
-    `Ваше бронирование №${booking.id} включает в себя билеты (${booking.bookingTickets.length} шт.) на мероприятие «${event.name}» общей стоимостью ${formatAmount(price, currency)}`,
+    `Ваше бронирование №${booking.id} включает в себя билеты (${booking.bookingTickets.length} шт.) на мероприятие(-я) ${event} общей стоимостью ${formatAmount(price, currency)}`,
     `${booking.id}-${user.id}-booking`,
     'RUB',
     labeledPrice,
@@ -149,9 +159,11 @@ export async function sendMyBookingPaySuccess(ctx: SharedContext) {
   const bookingId = Number(match[1]);
   await BookingService.payBooking(bookingId);
 
-  await ctx.reply('✅ Бронирование оплачено');
-
-  await sendMyBookings(ctx as ControllerContext);
+  await ctx.reply(`✅ Бронирование №B${bookingId} оплачено`, {
+    reply_markup: new InlineKeyboard()
+      .text('🎟️ Мои бронирования', TelegramStrategy.callbackPayloads.myBookingsPage(1)).row()
+      .text('🎫 Мои билеты', TelegramStrategy.callbackPayloads.myTicketsPage(1)),
+  });
 }
 
 export async function sendMyBookingCancel(ctx: ControllerContext, bookingId: number, page: number) {
