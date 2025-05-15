@@ -119,11 +119,11 @@ export class CoreBookingController<C extends PlatformContext, P extends Platform
   async sendBookingStart(user: User, eventId: number, fromPage: number, categoryId: number, subcategoryId: number) {
     let backButtonPayload: string | { action: string } = this.GO_HOME_CALLBACK;
     if(categoryId === 0 && subcategoryId === 0) {
-      backButtonPayload = this.strategy.callbackPayloads.eventDetails(eventId, fromPage);
+      backButtonPayload = this.strategy.callbackPayloads.eventsPage(fromPage);
     } else if(categoryId !== 0) {
-      backButtonPayload = this.strategy.callbackPayloads.eventDetailsCategory(eventId, fromPage, categoryId);
+      backButtonPayload = this.strategy.callbackPayloads.eventsCategoriedPage(fromPage, categoryId);
     } else if(subcategoryId !== 0) {
-      backButtonPayload = this.strategy.callbackPayloads.eventDetailsSubcategory(eventId, fromPage, subcategoryId);
+      backButtonPayload = this.strategy.callbackPayloads.eventsSubcategoriedPage(fromPage, subcategoryId);
     }
   
     bookingSessionService.setSession(user.id, { step: 'start', eventId, fromPage });
