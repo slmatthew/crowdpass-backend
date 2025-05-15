@@ -212,11 +212,6 @@ export class BookingService {
               TicketStatus.RESERVED
             );
           }
-
-          await prisma.booking.update({
-            where: { id },
-            data: { status },
-          });
         } else {
           // booking.status = PAID
           await TicketService.updateStatusMany(
@@ -224,6 +219,11 @@ export class BookingService {
             TicketStatus.RESERVED
           );
         }
+
+        await prisma.booking.update({
+          where: { id },
+          data: { status },
+        });
         return true;
 
       case BookingStatus.PAID:
