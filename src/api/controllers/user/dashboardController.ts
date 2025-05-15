@@ -1,0 +1,44 @@
+import { formatUser } from "@/api/utils/formatters";
+import { BookingService } from "@/services/bookingService";
+import { EventService } from "@/services/eventService";
+import { BookingStatus, Event } from "@prisma/client";
+import { Request, Response } from "express";
+
+export async function me(req: Request, res: Response) {
+  if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
+
+  return res.json({ user: formatUser(req.user) });
+}
+
+export async function dashboard(req: Request, res: Response) {
+  if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
+
+  let events: Event[] = await EventService.getPopularEventsSorted();
+  if(events.length !== 0) {
+    events = await EventService.getAllEvents();
+  }
+
+  events = events.slice(0, 2);
+
+  const bookings = (await BookingService.getByUserId(req.user.id)).length;
+
+  const bookedTickets = await BookingService.getByUserId(req.user.id, BookingStatus.PAID);
+  const tickets = (() => {
+    let count = 0;
+    for(const booking of bookedTickets) {
+      for(const bt of booking.bookingTickets) {
+        if(bt.ticket.ticketType.event) {
+          count++;
+        }
+      }
+    }
+
+    return count;
+  })();
+
+  return res.json({
+    events,
+    bookings,
+    tickets,
+  });
+}

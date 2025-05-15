@@ -8,8 +8,19 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const allowedOrigins = [
+  process.env.AP_BASE_URI,
+  process.env.TMA_BASE_URI,
+];
+
 app.use(cors({
-  origin: process.env.AP_BASE_URI || '*',
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 }));
 app.use(express.json());
@@ -22,11 +33,13 @@ import telegramAuthRoutes from './routes/auth/telegram';
 import mainInternalRoutes from './routes/internal/main';
 
 import { adminRoutes } from './routes/admin';
+import { userRoutes } from './routes/user';
 
 app.use('/api/auth/vk', vkAuthRoutes);
 app.use('/api/auth/telegram', telegramAuthRoutes);
 
 app.use('/api', adminRoutes);
+app.use('/api', userRoutes);
 
 app.use('/api/internal', mainInternalRoutes);
 
