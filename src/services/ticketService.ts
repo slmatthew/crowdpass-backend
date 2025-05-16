@@ -1,5 +1,5 @@
 import { prisma } from "../db/prisma";
-import { TicketStatus } from "@prisma/client";
+import { Ticket, TicketStatus } from "@prisma/client";
 import { randomBytes } from "crypto";
 
 export class TicketService {
@@ -41,25 +41,34 @@ export class TicketService {
   }
 
   static async updateStatus(ticketId: number, status: TicketStatus) {
+    const ticket = await TicketService.getTicketById(ticketId);
+    if(!ticket) return;
+
     return prisma.ticket.update({
       where: { id: ticketId },
       data: {
         status,
-        qrCodeSecret: TicketService.generateSecret(),
+        qrCodeSecret: ticket.qrCodeSecret ?? TicketService.generateSecret(),
       },
     });
   }
 
   static async updateStatusMany(ticketIds: number[], status: TicketStatus) {
-    return prisma.ticket.updateMany({
-      where: {
-        id: { in: ticketIds },
-      },
-      data: {
-        status,
-        qrCodeSecret: TicketService.generateSecret(),
-      },
-    });
+    for (let i = 0; i < ticketIds.length; i += 100) {
+      const batchIds = ticketIds.slice(i, i + 100);
+
+      await prisma.$transaction(
+        batchIds.map((id) =>
+          prisma.ticket.update({
+            where: { id },
+            data: {
+              status,
+              qrCodeSecret: TicketService.generateSecret(),
+            },
+          })
+        )
+      );
+    }
   }
 
   static async getAvailableTickets(ticketTypeId: number, count?: number) {
@@ -80,6 +89,29 @@ export class TicketService {
       include: {
         tickets,
       },
+    });
+  }
+
+  static async findTicketBySecret(secret: string) {
+    return prisma.ticket.findFirst({
+      where: { qrCodeSecret: secret },
+      include: {
+        ticketType: {
+          include: {
+            event: true,
+          }
+        },
+        bookingTickets: {
+          orderBy: { id: 'desc' },
+          include: {
+            booking: {
+              include: {
+                user: true,
+              }
+            }
+          }
+        }
+      }
     });
   }
 }

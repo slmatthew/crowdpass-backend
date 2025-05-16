@@ -5,5 +5,6 @@ const router = Router();
 
 router.get('/summary', dashboardController.getSummary);
 router.get('/me', dashboardController.getMe);
+router.post('/validate-ticket', dashboardController.validateTicket);
 
 export default router;
