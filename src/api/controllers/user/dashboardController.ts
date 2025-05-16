@@ -14,11 +14,11 @@ export async function dashboard(req: Request, res: Response) {
   if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
 
   let events: Event[] = await EventService.getPopularEventsSorted();
-  if(events.length !== 0) {
+  if(events.length === 0) {
     events = await EventService.getAllEvents();
   }
 
-  events = events.slice(0, 2);
+  events = events.slice(0, 3);
 
   const bookings = (await BookingService.getByUserId(req.user.id)).length;
 
@@ -28,7 +28,9 @@ export async function dashboard(req: Request, res: Response) {
     for(const booking of bookedTickets) {
       for(const bt of booking.bookingTickets) {
         if(bt.ticket.ticketType.event) {
-          count++;
+          if(new Date(bt.ticket.ticketType.event.endDate).getTime() > Date.now()) {
+            count++;
+          }
         }
       }
     }
