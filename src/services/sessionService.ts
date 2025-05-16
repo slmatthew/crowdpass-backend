@@ -20,10 +20,7 @@ export class SessionService {
   }
 
   static async delete(sessionId: number) {
-    const session = await prisma.session.findUnique({ where: { id: sessionId } });
-    if(!session) return;
-    
-    return prisma.session.delete({ where: { id: sessionId } });
+    return prisma.session.deleteMany({ where: { id: sessionId } });
   }
 
   static async deleteByUserId(userId: number) {
