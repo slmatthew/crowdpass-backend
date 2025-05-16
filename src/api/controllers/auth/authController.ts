@@ -26,7 +26,10 @@ export async function logout(req: Request, res: Response) {
   const { refreshToken } = req.body;
   if(!refreshToken) return res.status(400).json({ message: "Отсутствует refresh token" });
 
-  await SessionService.deleteByRefreshToken(refreshToken);
+  const session = await SessionService.findByRefreshToken(refreshToken);
+  if(!session) return res.status(400).json({ message: "Cессия просрочена" });
+
+  await SessionService.deleteByUserId(session.userId);
   res.json({ message: "Выход выполнен" });
 }
 
