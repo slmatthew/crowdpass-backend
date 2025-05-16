@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import axios from "axios";
 import { logAction } from "../../../utils/logAction";
-import { signToken } from "../../utils/signToken";
+import { signAccessToken, signRefreshToken } from "../../utils/signToken";
 import { UserService } from "@/services/userService";
 
 const VK_APP_ID = process.env.AP_VK_APP_ID!;
@@ -55,11 +55,13 @@ export async function vkCallback(req: Request, res: Response) {
       return res.status(403).json({ message: "Доступ запрещён: пользователь не найден или не является администратором." });
     }
 
-    const token = signToken({
+    const accessToken = signAccessToken({
       id: user.id,
       adm: user.admin.id,
       aud: 'web-panel',
     });
+
+    const refreshToken = await signRefreshToken(user.id);
 
     await logAction({
       actorId: user.id,
@@ -68,7 +70,7 @@ export async function vkCallback(req: Request, res: Response) {
       targetId: user.id,
     });
 
-    res.json({ token });
+    res.json({ accessToken, refreshToken });
   } catch (error: any) {
     console.error("Ошибка обмена VK code:", error.response?.data || error.message);
     res.status(500).json({ message: "Ошибка авторизации через VK." });

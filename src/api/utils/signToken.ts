@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { SessionService } from "@/services/sessionService";
 
 export interface TokenData {
   id: number;
@@ -8,21 +9,19 @@ export interface TokenData {
   aud?: string;
 }
 
-export function signToken(
-  data : TokenData,
-  expiresIn : string = '2h'
-): string {
-  const tokenData : TokenData = {
-    id: data.id,
-    adm: data.adm,
-    iat: Math.floor(Date.now() / 1000),
-    iss: data.iss || 'crowdpass',
-    aud: data.aud || 'unknown',
-  };
-
+export function signAccessToken(data: TokenData, expiresIn = '15m'): string {
   return jwt.sign(
-    tokenData,
+    { ...data, iss: 'crowdpass', aud: 'user' },
     process.env.JWT_SECRET!,
     { expiresIn }
   );
+}
+
+export async function signRefreshToken(userId: number): Promise<string> {
+  const refreshToken = crypto.randomUUID();
+  const expiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 дней
+
+  await SessionService.create(userId, refreshToken, expiresAt);
+
+  return refreshToken;
 }
