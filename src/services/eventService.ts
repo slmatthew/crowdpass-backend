@@ -166,6 +166,7 @@ export class EventService {
 
   static async getPopularEventsSorted() {
     const events = await prisma.event.findMany({
+      where: { endDate: { gte: new Date() } },
       include: {
         ticketTypes: {
           include: { tickets: true },
