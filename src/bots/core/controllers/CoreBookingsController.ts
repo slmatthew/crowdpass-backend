@@ -224,7 +224,7 @@ export class CoreBookingController<C extends PlatformContext, P extends Platform
     }
   
     try {
-      const booking = await BookingService.makeBooking(user.id, session.ticketTypeId, session.ticketsCount);
+      const booking = await BookingService.makeBooking(user.id, [{ ticketTypeId: session.ticketTypeId, quantity: session.ticketsCount }]);
 
       return this.goodActionReply(
         { plain: `✅ Вы успешно забронировали ${session.ticketsCount} билет(а/ов)!\n\nНомер бронирования: ${booking.id}` },

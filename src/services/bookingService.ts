@@ -12,6 +12,8 @@ interface BookingQueryParams {
   limit?: number;
 }
 
+type BookingRequestTicket = { ticketTypeId: number; quantity: number };
+
 export class BookingService {
   /**
    * Удалять ли билеты при отмене бронирования
@@ -237,52 +239,84 @@ export class BookingService {
   /**
    * Бронирование билетов
    */
-  static async makeBooking(userId: number, ticketTypeId: number, quantity: number) {
-    if(quantity <= 0) throw new BookingError(BookingErrorCodes.INVALID_QUANTITY, "Количество билетов должно быть больше 0");
+  static async makeBooking(userId: number, tickets: BookingRequestTicket[]) {
+    if(!Array.isArray(tickets) || tickets.length === 0) {
+      throw new BookingError(BookingErrorCodes.INVALID_REQUEST, "Не указаны позиции для бронирования");
+    }
 
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-    });
+    const user = await prisma.user.findUnique({ where: { id: userId } });
     if(!user) throw new BookingError(BookingErrorCodes.USER_NOT_FOUND, "Пользователь не найден");
 
-    const ticketType = await prisma.ticketType.findUnique({
-      where: { id: ticketTypeId },
-      include: { event: true }
-    });
-    if(!ticketType) throw new BookingError(BookingErrorCodes.TICKET_TYPE_NOT_FOUND, "Тип билета не найден");
+    const bookingData: { ticketTypeId: number; tickets: { id: number }[] }[] = [];
 
-    const now = new Date();
-    if(ticketType.event.endDate <= now) {
-      throw new BookingError(BookingErrorCodes.EVENT_ALREADY_ENDED, "Нельзя забронировать билет на завершившееся мероприятие");
-    }
+    for(const ticket of tickets) {
+      const { ticketTypeId, quantity } = ticket;
 
-    const availableTickets = await prisma.ticket.findMany({
-      where: {
-        ticketTypeId: ticketType.id,
-        status: TicketStatus.AVAILABLE,
-      },
-      take: quantity,
-    });
-    if(availableTickets.length < quantity) {
-      throw new BookingError(BookingErrorCodes.TOO_MUCH_TICKETS, "Недостаточно доступных билетов", availableTickets.length);
-    }
+      if(quantity <= 0) {
+        throw new BookingError(BookingErrorCodes.INVALID_QUANTITY, "Количество билетов должно быть больше 0", ticket);
+      }
 
-    const booking = await prisma.booking.create({
-      data: {
-        userId: user.id,
-        status: BookingStatus.ACTIVE,
-        bookingTickets: {
-          create: availableTickets.map(ticket => ({
-            ticketId: ticket.id,
-          })),
+      const ticketType = await prisma.ticketType.findUnique({
+        where: { id: ticketTypeId },
+        include: { event: true },
+      });
+      if(!ticketType) {
+        throw new BookingError(BookingErrorCodes.TICKET_TYPE_NOT_FOUND, "Указан некорректный тип билета", ticket);
+      }
+
+      const now = new Date();
+      if(ticketType.event.endDate <= now) {
+        throw new BookingError(BookingErrorCodes.EVENT_ALREADY_ENDED, "Мероприятие, связанное с одним из билетов, уже завершилось", ticket);
+      }
+
+      const availableTickets = await prisma.ticket.findMany({
+        where: {
+          ticketTypeId: ticketType.id,
+          status: TicketStatus.AVAILABLE,
         },
-      },
-    });
+        take: quantity,
+      });
 
-    await TicketService.updateStatusMany(
-      availableTickets.map(t => t.id),
-      TicketStatus.RESERVED
-    );
+      if(availableTickets.length < quantity) {
+        throw new BookingError(
+          BookingErrorCodes.TOO_MUCH_TICKETS,
+          "Недостаточно доступных билетов для одного из типов билетов",
+          { ticket, available: availableTickets.length }
+        );
+      }
+
+      bookingData.push({
+        ticketTypeId,
+        tickets: availableTickets.map(t => ({ id: t.id })),
+      });
+    }
+
+    const booking = await prisma.$transaction(async (tx) => {
+      const newBooking = await tx.booking.create({
+        data: {
+          userId: user.id,
+          status: BookingStatus.ACTIVE,
+        },
+      });
+
+      for(const { tickets } of bookingData) {
+        for(const ticket of tickets) {
+          await tx.bookingTicket.create({
+            data: {
+              bookingId: newBooking.id,
+              ticketId: ticket.id,
+            },
+          });
+
+          await tx.ticket.update({
+            where: { id: ticket.id },
+            data: { status: TicketStatus.RESERVED, qrCodeUrl: TicketService.generateSecret() },
+          });
+        }
+      }
+
+      return newBooking;
+    });
 
     return booking;
   }

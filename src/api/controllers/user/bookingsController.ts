@@ -3,6 +3,7 @@ import { telegram } from "@/bots/telegram";
 import { currencyCache } from "@/bots/telegram/utils/currencyCache";
 import { formatAmount } from "@/bots/telegram/utils/formatAmount";
 import { BookingService } from "@/services/bookingService";
+import { BookingError } from "@/types/errors/BookingError";
 import { Request, Response } from "express";
 
 const TELEGRAM_PAYMENTS_LIVE = process.env.NODE_ENV !== 'development';
@@ -78,4 +79,34 @@ export async function cancelBooking(req: Request, res: Response) {
 
   await BookingService.cancelBooking(booking.id);
   return res.status(204).send();
+}
+
+export async function make(req: Request, res: Response) {
+  if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
+
+  const tickets: { ticketTypeId: number, quantity: number }[] = req.body.tickets;
+  if(!Array.isArray(tickets) || tickets.length === 0) return res.status(400).json({ message: 'Некорректный формат запроса' });
+
+  for(const ticket of tickets) {
+    if(
+      !ticket.ticketTypeId ||
+      typeof ticket.ticketTypeId !== 'number' ||
+      !Number.isInteger(ticket.ticketTypeId) ||
+      !ticket.quantity ||
+      typeof ticket.quantity !== 'number' ||
+      ticket.quantity <= 0 ||
+      !Number.isInteger(ticket.quantity)
+    ) return res.status(422).json({ message: 'Некорректные значения' });
+  }
+  
+  try {
+    const booking = await BookingService.makeBooking(req.user.id, tickets);
+
+    res.json({ ok: true, bookingId: booking.id });
+  } catch(err: any) {
+    if(err instanceof BookingError) return res.status(500).json({ message: err.message, metadata: err.metadata });
+
+    console.error(err);
+    res.status(500).json({ message: "Произошла ошибка" });
+  }
 }
