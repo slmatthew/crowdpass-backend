@@ -5,5 +5,6 @@ import * as c from "@api/controllers/user/eventsController";
 const router = Router();
 
 router.get('/', authUser, c.compactList);
+router.get('/:id', authUser, c.details);
 
 export default router;

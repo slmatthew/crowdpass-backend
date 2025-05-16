@@ -74,3 +74,24 @@ export async function compactList(req: Request, res: Response) {
     subcategories: Array.from(subcategories.values()),
   });
 }
+
+export async function details(req: Request, res: Response) {
+  const { id } = req.params;
+  const event = await EventService.getEventOverview(Number(id));
+
+  if(!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
+
+  (event as any).ticketTypes = event.ticketTypes.map(tt => ({
+    id: tt.id,
+    name: tt.name,
+    price: tt.price,
+    available: tt.stats.availableTickets
+  }));
+
+  (event as any).organizerId = undefined;
+  (event as any).categoryId = undefined;
+  (event as any).subcategoryId = undefined;
+  (event as any).stats = undefined;
+
+  res.json(event);
+}
