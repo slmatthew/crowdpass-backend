@@ -19,6 +19,18 @@ export async function dashboard(req: Request, res: Response) {
   }
 
   events = events.slice(0, 3);
+  events = events.map(e => ({
+    name: e.name,
+    id: e.id,
+    description: e.description,
+    startDate: e.startDate,
+    endDate: e.endDate,
+    location: e.location,
+    posterUrl: e.posterUrl,
+    organizerId: e.organizerId,
+    categoryId: e.categoryId,
+    subcategoryId: e.subcategoryId,
+  }));
 
   const bookings = (await BookingService.getByUserId(req.user.id)).length;
 
