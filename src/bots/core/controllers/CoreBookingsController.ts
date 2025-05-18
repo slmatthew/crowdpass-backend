@@ -1,7 +1,7 @@
 import { BookingService } from "@/services/bookingService";
 import { CoreController } from "./CoreController";
 import { ActionReply, ControllerResponse } from "./types/ControllerResponse";
-import { User } from "@prisma/client";
+import { Event, User } from "@prisma/client";
 import { PAGE_SIZE } from "@/constants/appConstants";
 import { KeyboardBuilder } from "../ui/KeyboardBuilder";
 import dayjs from "dayjs";
@@ -29,11 +29,35 @@ export class CoreBookingController<C extends PlatformContext, P extends Platform
     const keyboard = new KeyboardBuilder();
 
     bookingsPage.forEach((booking, index) => {
-      const event = booking.bookingTickets[0]?.ticket.ticketType.event;
+      const events = new Map<number, Event>();
 
-      if(event) {
-        markdown += `*${startIndex + index + 1}.* ${event.name}\n📅 ${dayjs(event.startDate).format("DD.MM.YYYY")} | 📍 ${event.location}\n`;
-        plain += `${startIndex + index + 1}. ${event.name}\n📅 ${dayjs(event.startDate).format("DD.MM.YYYY")} | 📍 ${event.location}\n`;
+      booking.bookingTickets.forEach(bt => {
+        if(!events.has(bt.ticket.ticketType.event.id)) events.set(bt.ticket.ticketType.event.id, bt.ticket.ticketType.event);
+      })
+
+      if(events.size > 0) {
+        markdown += `*${startIndex + index + 1}.* Бронирование №B${booking.id}\n`;
+        plain += `${startIndex + index + 1}. Бронирование №B${booking.id}\n`;
+
+        if(events.size === 1) {
+          const eventsText = `${Array.from(events)[0][1].name}, ${dayjs(Array.from(events)[0][1].startDate).format("DD.MM в HH:mm")}`;
+
+          markdown += `_${eventsText}_\n`;
+          plain += `${eventsText}\n`;
+        } else {
+          const eventsText = (() => {
+            const names: string[] = [];
+
+            for(const e of events.values()) {
+              if(names.indexOf(e.name) === -1) names.push(e.name);
+            }
+
+            return names.join(', ');
+          })();
+
+          markdown += `_${eventsText}_\n`;
+          plain += `${eventsText}`;
+        }
 
         const ticketGroups = booking.bookingTickets.reduce((acc, bt) => {
           const type = bt.ticket.ticketType.name;
