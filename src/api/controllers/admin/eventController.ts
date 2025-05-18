@@ -69,7 +69,11 @@ export async function updateEventById(req: Request, res: Response) {
     const prev = await EventService.getEventById(id);
     if (!prev) return res.status(404).json({ message: 'Мероприятие не найдено' });
 
-    const updatedEvent = await EventService.updateEvent(id, validated);
+    const updatedEvent = await EventService.updateEvent(id, {
+      ...validated,
+      startDate: new Date(validated.startDate),
+      endDate: new Date(validated.endDate),
+    });
 
     await logAction({
       actorId: req.user?.id || 0,
@@ -100,7 +104,11 @@ export async function createEvent(req: Request, res: Response) {
 
     if(!privileges.events.create(req.user!, data.organizerId)) return res.status(403).json({ message: "Нет доступа" }); 
 
-    const created = await EventService.createEvent(data);
+    const created = await EventService.createEvent({
+      ...data,
+      startDate: new Date(data.startDate),
+      endDate: new Date(data.endDate),
+    });
 
     const adminId = req.user?.id;
     if (adminId) {

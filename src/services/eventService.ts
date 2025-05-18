@@ -13,8 +13,8 @@ interface UpdateEventData {
   name: string;
   description: string;
   location: string;
-  startDate: string;
-  endDate: string;
+  startDate: Date;
+  endDate: Date;
   organizerId: number;
   categoryId: number;
   subcategoryId: number;
@@ -220,8 +220,8 @@ export class EventService {
         name: data.name,
         description: data.description,
         location: data.location,
-        startDate: new Date(data.startDate),
-        endDate: new Date(data.endDate),
+        startDate: data.startDate,
+        endDate: data.endDate,
         organizerId: data.organizerId,
         categoryId: data.categoryId,
         subcategoryId: data.subcategoryId,
@@ -235,8 +235,8 @@ export class EventService {
         name: data.name,
         description: data.description,
         location: data.location,
-        startDate: new Date(data.startDate),
-        endDate: new Date(data.endDate),
+        startDate: data.startDate,
+        endDate: data.endDate,
         organizerId: data.organizerId,
         categoryId: data.categoryId,
         subcategoryId: data.subcategoryId,
