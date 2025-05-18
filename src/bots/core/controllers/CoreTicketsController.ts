@@ -23,6 +23,8 @@ export class CoreTicketsController<C extends PlatformContext, P extends Platform
 
     for(const booking of bookings) {
       for(const bt of booking.bookingTickets) {
+        if(bt.ticket.status !== 'SOLD') continue;
+
         const event = bt.ticket.ticketType.event;
         if(event) {
           tickets.push({
