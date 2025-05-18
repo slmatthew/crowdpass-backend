@@ -5,6 +5,7 @@ import { startApiServer } from "./api";
 import { MessageQueueService } from "./services/messageQueueService";
 import { scheduleExpiredBookingCleanup } from "./utils/schedulers/cleanupExpiredBookings";
 import dotenv from "dotenv";
+import { prepareRootSetup } from "./utils/checkRoot";
 
 dotenv.config();
 
@@ -13,6 +14,8 @@ let shuttingDown = false;
 async function main() {
   MessageQueueService.start();
   scheduleExpiredBookingCleanup();
+
+  await prepareRootSetup();
 
   await startApiServer();
   await startTelegramBot();
@@ -28,7 +31,6 @@ async function shutdown() {
   console.log("🧹 Завершение работы...");
 
   try {
-    // Останавливаем ботов
     await telegram.stop();
     await vk.updates.stop();
 

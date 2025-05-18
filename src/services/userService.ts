@@ -271,4 +271,22 @@ export class UserService {
   
     return true;
   }
+
+  static async rootExists(): Promise<boolean> {
+    const root = await prisma.admin.findFirst({ where: { role: 'ROOT' } });
+
+    return !!root;
+  }
+
+  static async makeRoot(userId: number) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if(!user) throw Error("Invalid userId");
+
+    return prisma.admin.create({
+      data: {
+        userId,
+        role: 'ROOT',
+      }
+    });
+  }
 }

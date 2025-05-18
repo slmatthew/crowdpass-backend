@@ -7,6 +7,7 @@ import { handleNavigationCallbacks } from "./handlers/navigationHandlers";
 import { handleText } from "./handlers/textHandlers";
 import { SharedContext, SessionData } from "@/types/grammy/SessionData";
 import { handleEventsCallbacks } from "./handlers/eventsHandlers";
+import { isRootSetupActive } from "@/utils/checkRoot";
 
 const bot = new Bot<SharedContext>(process.env.TELEGRAM_BOT_TOKEN as string);
 
@@ -53,14 +54,14 @@ handleEventsCallbacks(bot);
 handleBookingCallbacks(bot);
 handleTicketCallbacks(bot);
 
-/* text */
-handleText(bot);
-
 bot.catch((err) => {
   console.error("Ошибка в боте:", err.error);
 });
 
 export function startTelegramBot() {
+  if(isRootSetupActive()) bot.command('claim', cmd.claimCommand);
+  handleText(bot);
+
   console.log("🚀 Telegram bot running");
   bot.start();
 }
