@@ -198,6 +198,8 @@ model AccountLinkRequest {
 
   source     User      @relation("SourceRequests", fields: [sourceId], references: [id], onDelete: Cascade)
   target     User?     @relation("TargetRequests", fields: [targetId], references: [id], onDelete: Cascade)
+
+  @@map("account_link_requests")
 }
 
 enum Platform {
