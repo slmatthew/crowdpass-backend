@@ -68,7 +68,11 @@ export class TelegramAuth {
       const parsed = parse(initData);
       if(!parsed.user) throw new Error('initData invalid');
 
-      const user = await UserService.findUserByPlatformId('TELEGRAM', parsed.user.id.toString(), true);
+      const user = await UserService.findOrCreateUser({
+        telegramId: parsed.user.id.toString(),
+        firstName: parsed.user.first_name,
+        lastName: parsed.user.last_name ?? '',
+      });
       if(!user) throw new Error('User not found');
 
       const accessToken = signAccessToken({
