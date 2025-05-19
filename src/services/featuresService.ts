@@ -61,4 +61,4 @@ class FeaturesService {
   }
 }
 
-export const features = new FeaturesService(false);
+export const features = new FeaturesService(true);
