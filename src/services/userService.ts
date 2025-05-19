@@ -128,7 +128,7 @@ export class UserService {
   
     const sourceUser = await prisma.user.findUnique({ where: { id: sourceUserId } });
     if (!sourceUser) {
-      throw new UserError(UserErrorCodes.USER_NOT_FOUND, "Пользователь не найден");
+      throw new UserError(UserErrorCodes.USER_NOT_FOUND, "Пользователь не найден. Вы должны быть зарегистрированы в боте VK перед началом процедуры");
     }
   
     if (
