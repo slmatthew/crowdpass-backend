@@ -7,9 +7,7 @@ import { BookingService } from "@/services/bookingService";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { currencyCache } from "../utils/currencyCache";
 import { formatAmount } from "../utils/formatAmount";
-
-const TELEGRAM_PAYMENTS_LIVE = process.env.NODE_ENV !== 'development';
-const TELEGRAM_PAYMENTS_TOKEN = TELEGRAM_PAYMENTS_LIVE ? process.env.TELEGRAM_PAYMENTS_LIVE_TOKEN : process.env.TELEGRAM_PAYMENTS_TEST_TOKEN;
+import { features } from "@/services/featuresService";
 
 const controller = new CoreBookingController(TelegramStrategy);
 
@@ -20,7 +18,10 @@ export async function sendMyBookings(ctx: ControllerContext, page: number = 1) {
 }
 
 export async function sendMyBookingPaySimple(ctx: ControllerContext, bookingId: number, page: number) {
-  if(TELEGRAM_PAYMENTS_LIVE) {
+  if(
+    (features.isTelegramPaymentsWorking() && !features.isTelegramPaymentsTesting()) ||
+    !features.isTelegramPaymentsWorking()
+  ) {
     try {
       await ctx.answerCallbackQuery('❌ Недоступно');
     } catch(err) {
@@ -61,6 +62,8 @@ export async function sendMyBookingPaySimple(ctx: ControllerContext, bookingId: 
 }
 
 export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number, page: number) {
+  if(!features.isTelegramPaymentsWorking()) return ctx.answerCallbackQuery('⚠️ Оплата недоступна');
+
   const user = ctx.sfx.user!;
   const booking = await BookingService.getById(bookingId);
 
@@ -109,8 +112,8 @@ export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number
 
   const currency = await currencyCache.getCurrency();
   if(price <= Number(currency.min_amount) || price >= Number(currency.max_amount)) {
-    if(TELEGRAM_PAYMENTS_LIVE) {
-      await ctx.answerCallbackQuery('Оплата невозможна');
+    if(features.isTelegramPaymentsWorking()) {
+      await ctx.answerCallbackQuery('⚠️ Оплата невозможна');
       await ctx.reply(
         `⚠️ К сожалению, это бронирование невозможно оплатить в Telegram.\n\n` +
         `Обратитесь в /support для получения инструкций к оплате. Не забудьте указать номер брони: ${booking.id}`,
@@ -123,6 +126,8 @@ export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number
     return;
   }
 
+  await ctx.answerCallbackQuery();
+
   await ctx.api.sendInvoice(
     ctx.chat!.id,
     `CrowdPass №B${booking.id}`,
@@ -131,7 +136,7 @@ export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number
     'RUB',
     labeledPrice,
     {
-      provider_token: TELEGRAM_PAYMENTS_TOKEN,
+      provider_token: features.getTelegramPaymentsToken(),
     },
   );
 }
