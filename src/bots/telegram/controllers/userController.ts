@@ -1,0 +1,14 @@
+import { UserService } from "@/services/userService";
+import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
+import { ControllerContext } from "./ControllerContext";
+
+export async function setPhone(ctx: ControllerContext) {
+  if(!ctx.sfx.user) return ctx.reply('❌ Не удалось получить информацию о пользователе', extraGoToHomeKeyboard);
+  if(!ctx.update.message?.contact) return ctx.reply('❌ Отсутствует номер телефона', extraGoToHomeKeyboard);
+  
+  const { contact } = ctx.update.message;
+  if(contact.user_id !== Number(ctx.sfx.user.telegramId)) return ctx.reply('❌ Отправьте свой номер телефона', extraGoToHomeKeyboard);
+
+  await UserService.setPhone(ctx.sfx.user, contact.phone_number);
+  await ctx.reply('✅ Вы обновили свой номер телефона', extraGoToHomeKeyboard);
+}

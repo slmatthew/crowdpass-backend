@@ -1,7 +1,9 @@
-import { Platform, Role } from "@prisma/client";
+import { Admin, Platform, Role, User } from "@prisma/client";
 import { prisma } from "../db/prisma";
 import { randomUUID } from "crypto";
 import { UserError, UserErrorCodes } from "@/types/errors/UserError";
+
+type UserAdmin = User & { admin?: Admin };
 
 export class UserService {
   static async findOrCreateUser(data: {
@@ -11,7 +13,7 @@ export class UserService {
     lastName: string;
     phone?: string;
     email?: string;
-  }) {
+  }): Promise<UserAdmin> {
     const existing = await prisma.user.findFirst({
       where: {
         OR: [
@@ -19,9 +21,12 @@ export class UserService {
           { vkId: data.vkId ?? undefined },
         ],
       },
+      include: {
+        admin: true,
+      },
     });
   
-    if (existing) return existing;
+    if(existing) return existing as UserAdmin;
   
     return prisma.user.create({ data });
   }
@@ -287,6 +292,15 @@ export class UserService {
         userId,
         role: 'ROOT',
       }
+    });
+  }
+
+  static async setPhone(user: User, phone: string) {
+    const userId = user.id;
+
+    return prisma.user.update({
+      where: { id: userId },
+      data: { phone },
     });
   }
 }

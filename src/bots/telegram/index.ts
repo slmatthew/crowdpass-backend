@@ -1,13 +1,17 @@
 import { UserService } from "@/services/userService";
 import { Bot, session } from "grammy";
-import * as cmd from "./commands";
+
+import { handleCommands } from "./handlers/commandHandler";
 import { handleBookingCallbacks } from "./handlers/bookingHandlers";
 import { handleTicketCallbacks } from "./handlers/ticketHandlers";
 import { handleNavigationCallbacks } from "./handlers/navigationHandlers";
-import { handleText } from "./handlers/textHandlers";
-import { SharedContext, SessionData } from "@/types/grammy/SessionData";
 import { handleEventsCallbacks } from "./handlers/eventsHandlers";
+import { handleText } from "./handlers/textHandlers";
+
+import { SharedContext, SessionData } from "@/types/grammy/SessionData";
 import { isRootSetupActive } from "@/utils/checkRoot";
+
+import { claimCommand } from "./commands";
 
 const bot = new Bot<SharedContext>(process.env.TELEGRAM_BOT_TOKEN as string);
 
@@ -33,20 +37,7 @@ bot.use(async (ctx, next) => {
 });
 
 /* commands */
-bot.command('start', cmd.startCommand);
-bot.command('help', cmd.helpCommand);
-
-bot.command('about', cmd.aboutCommand);
-bot.command('support', cmd.supportCommand);
-
-bot.command('link', cmd.linkCommand);
-
-bot.command('events', cmd.eventsCommand);
-bot.command('mytickets', cmd.myticketsCommand);
-bot.command('mybookings', cmd.mybookingsCommand);
-bot.command('cancel', cmd.cancelCommand);
-
-bot.command('test', cmd.testCommand);
+handleCommands(bot);
 
 /* callbacks */
 handleNavigationCallbacks(bot);
@@ -59,8 +50,10 @@ bot.catch((err) => {
 });
 
 export function startTelegramBot() {
-  if(isRootSetupActive()) bot.command('claim', cmd.claimCommand);
+  if(isRootSetupActive()) bot.command('claim', claimCommand);
   handleText(bot);
+
+  bot.use(console.log)
 
   console.log("🚀 Telegram bot running");
   bot.start();
