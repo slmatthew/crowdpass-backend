@@ -13,9 +13,14 @@ type CompactEvent = Omit<Event, 'endDate' | 'organizer' | 'category' | 'subcateg
 export async function compactList(req: Request, res: Response) {
   if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
 
-  const { skip, take } = req.query;
+  const { skip, take, categoryId, subcategoryId, search } = req.query;
 
-  const allEvents = await EventService.getAllEvents(true, { organizer: true, category: true, subcategory: true, ticketTypes: true });
+  const allEvents = await EventService.searchEvents(
+    categoryId ? Number(categoryId) : undefined,
+    subcategoryId ? Number(subcategoryId) : undefined,
+    search ? search.toString() : undefined
+  );
+  
   const eventsList = ((): typeof allEvents => {
     let nSkip = Number(skip) ?? null;
     let nTake = Number(take) ?? null;
@@ -43,12 +48,12 @@ export async function compactList(req: Request, res: Response) {
   const events: CompactEvent[] = [];
   const organizers = new Map<number, IdNamePair>();
   const categories = new Map<number, IdNamePair>();
-  const subcategories = new Map<number, IdNamePair>();
+  const subcategories = new Map<number, IdNamePair & { categoryId: number }>();
 
   eventsList.forEach(event => {
     organizers.set(event.organizer.id, { id: event.organizer.id, name: event.organizer.name });
     categories.set(event.category.id, { id: event.category.id, name: event.category.name });
-    subcategories.set(event.subcategory.id, { id: event.subcategory.id, name: event.subcategory.name });
+    subcategories.set(event.subcategory.id, { id: event.subcategory.id, name: event.subcategory.name, categoryId: event.subcategory.categoryId });
 
     const prices = event.ticketTypes.map(t => Number(t.price));
     const compactEvent = {

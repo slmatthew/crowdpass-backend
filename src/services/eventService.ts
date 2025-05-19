@@ -45,6 +45,28 @@ export class EventService {
     });
   }
 
+  static async searchEvents(categoryId?: number, subcategoryId?: number, search?: string) {
+    return prisma.event.findMany({
+      where: {
+        startDate: {
+          gte: new Date(),
+        },
+        name: search,
+        categoryId,
+        subcategoryId,
+      },
+      include: {
+        organizer: true,
+        category: true,
+        subcategory: true,
+        ticketTypes: true,
+      },
+      orderBy: {
+        startDate: 'asc'
+      },
+    });
+  }
+
   static async getEventsByCategoryId(categoryId: number) {
     return prisma.event.findMany({
       where: {
@@ -166,7 +188,7 @@ export class EventService {
 
   static async getPopularEventsSorted() {
     const events = await prisma.event.findMany({
-      where: { endDate: { gte: new Date() } },
+      where: { startDate: { gte: new Date() } },
       include: {
         ticketTypes: {
           include: { tickets: true },
