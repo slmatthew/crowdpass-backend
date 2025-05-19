@@ -80,7 +80,7 @@ export class CoreTicketsController<C extends PlatformContext, P extends Platform
   }
 
   async sendTicketQr(user: User, ticketId: number): Promise<ControllerResponse> {
-    const ticket = await TicketService.getTicketById(ticketId);
+    let ticket = await TicketService.getTicketById(ticketId);
 
     if(!ticket) return {
       ok: false,
@@ -89,6 +89,19 @@ export class CoreTicketsController<C extends PlatformContext, P extends Platform
         isNotify: true,
       } as ActionReply,
     };
+
+    if(!ticket.qrCodeSecret) {
+      await TicketService.updateStatus(ticket.id, ticket.status);
+      ticket = await TicketService.getTicketById(ticket.id);
+
+      if(!ticket) return {
+        ok: false,
+        action: {
+          text: { plain: 'Билет не найден' },
+          isNotify: true,
+        } as ActionReply,
+      };
+    }
 
     const ticketBought = await TicketService.isTicketBoughtByUser(ticket.id, user.id);
     if(!ticketBought) return {
@@ -99,7 +112,7 @@ export class CoreTicketsController<C extends PlatformContext, P extends Platform
       } as ActionReply,
     };
 
-    const qrData = `${process.env.AP_BASE_URI}/validate?secret=${ticket.qrCodeSecret}`;
+    const qrData = ticket.qrCodeSecret!;
     const qrImageBuffer = await QRCode.toBuffer(qrData, { type: 'png' });
 
     const text =
