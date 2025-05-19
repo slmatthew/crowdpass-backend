@@ -105,6 +105,8 @@ export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number
     });
   }
 
+  price = price * 100;
+
   const currency = await currencyCache.getCurrency();
   if(price <= Number(currency.min_amount) || price >= Number(currency.max_amount)) {
     if(TELEGRAM_PAYMENTS_LIVE) {
