@@ -7,7 +7,27 @@ import { Request, Response } from "express";
 export async function me(req: Request, res: Response) {
   if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
 
-  return res.json({ user: req.user });
+  const phone = (() => {
+    if(req.user.phone) {
+      const phoneLength = req.user.phone.length;
+
+      let phone = '';
+      phone += req.user.phone.slice(0, 1);
+      phone += '*'.repeat(phoneLength - 5);
+      phone += req.user.phone.slice(phoneLength - 4);
+
+      return phone;
+    }
+
+    return req.user.phone;
+  })();
+
+  const user = {
+    ...req.user,
+    phone,
+  };
+
+  return res.json({ user });
 }
 
 export async function dashboard(req: Request, res: Response) {
