@@ -1,4 +1,4 @@
-import jwt from "jsonwebtoken";
+import jwt, { SignOptions } from "jsonwebtoken";
 import { SessionService } from "@/services/sessionService";
 
 export interface TokenData {
@@ -9,11 +9,18 @@ export interface TokenData {
   aud?: string;
 }
 
-export function signAccessToken(data: TokenData, expiresIn = '15m'): string {
+export function signAccessToken(data: TokenData, expiresIn: SignOptions['expiresIn'] = '15m'): string {
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    throw new Error("JWT_SECRET is not set in environment variables");
+  }
+
+  const options: SignOptions = { expiresIn: expiresIn };
+
   return jwt.sign(
     { ...data, iss: 'crowdpass', aud: 'user' },
-    process.env.JWT_SECRET!,
-    { expiresIn }
+    secret,
+    options
   );
 }
 

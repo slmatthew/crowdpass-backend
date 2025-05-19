@@ -1,9 +1,9 @@
-import { Api, Bot, InlineKeyboard, RawApi } from "grammy";
+import { Api, Bot, RawApi } from "grammy";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { CallbackAction } from "../constants/callbackActions";
 import { sendAllEvents, sendCategoryChoice, sendEventDetails, sendEventsByCategory, sendEventsBySubcategory, sendSubcategoryChoice } from "../controllers/eventsController";
 import { handlePayload } from "../utils/handlePayload";
-import { callbackPayloads } from "../utils/callbackPayloads";
+import { TelegramStrategy } from "../controllers/TelegramStrategy";
 
 export function handleEventsCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   bot.callbackQuery(CallbackAction.EVENTS_ALL, async (ctx) => {
@@ -34,11 +34,11 @@ export function handleEventsCallbacks(bot: Bot<SharedContext, Api<RawApi>>) {
   handlePayload<[number, number]>(bot, CallbackAction.EVENT_DETAILS, sendEventDetails);
 
   handlePayload<[number, number, number]>(bot, CallbackAction.EVENT_DETAILS_CATEGORY, async (ctx, eventId, fromPage, categoryId) => {
-    await sendEventDetails(ctx, eventId, fromPage, categoryId, 'category', callbackPayloads.eventsCategoriedPage);
+    await sendEventDetails(ctx, eventId, fromPage, categoryId, 'category', TelegramStrategy.callbackPayloads.eventsCategoriedPage);
   });
 
   handlePayload<[number, number, number]>(bot, CallbackAction.EVENT_DETAILS_SUBCATEGORY, async (ctx, eventId, fromPage, subcategoryId) => {
-    await sendEventDetails(ctx, eventId, fromPage, subcategoryId, 'subcategory', callbackPayloads.eventsSubcategoriedPage);
+    await sendEventDetails(ctx, eventId, fromPage, subcategoryId, 'subcategory', TelegramStrategy.callbackPayloads.eventsSubcategoriedPage);
   });
 
   handlePayload<[number]>(bot, CallbackAction.EVENT_CATEGORY, async (ctx, categoryId) => {
