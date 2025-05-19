@@ -7,7 +7,7 @@
     "dev:bot:telegram": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/devTelegramBot.ts",
     "dev:bot:vk": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/devVkBot.ts",
     "dev": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/index.ts",
-    "build": "tsc",
+    "build": "tsc && tsc-alias",
     "start": "node dist/index.js",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
@@ -43,6 +43,7 @@
     "@types/node-cron": "^3.0.11",
     "@types/qrcode": "^1.5.5",
     "ts-node-dev": "^2.0.0",
+    "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0"
   }
 }
