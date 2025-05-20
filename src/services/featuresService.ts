@@ -31,7 +31,7 @@ class FeaturesService {
     console.info('💸 Telegram Payments status:', this.TELEGRAM_PAYMENTS_ENABLED ? 'working,' : 'not working,', this.isTelegramPaymentsTesting() ? 'test mode' : 'live mode');
   }
 
-  disableTelegramPayments(): void {
+  private disableTelegramPayments(): void {
     this.TELEGRAM_PAYMENTS_ENABLED = false;
     this.TELEGRAM_PAYMENTS_LIVE = false;
     this.TELEGRAM_PAYMENTS_LIVE_TOKEN = '';
