@@ -27,6 +27,10 @@ export class CoreTicketsController<C extends PlatformContext, P extends Platform
 
         const event = bt.ticket.ticketType.event;
         if(event) {
+          if(Date.now() >= new Date(event.endDate).getTime()) {
+            continue;
+          }
+
           tickets.push({
             ticketId: bt.ticket.id,
             eventName: event.name,
