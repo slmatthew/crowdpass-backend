@@ -85,7 +85,7 @@ export function handleText(bot: Bot<SharedContext, Api<RawApi>>) {
       .text("✅ Подтвердить", TelegramStrategy.callbackPayloads.bookingConfirm(user.id) as string)
       .text("❌ Отменить", TelegramStrategy.callbackPayloads.bookingCancel(user.id) as string);
 
-    await ctx.react('👌');
+    try { await ctx.react('👌'); } catch(err) {}
 
     await ctx.reply(`Вы хотите забронировать *${count}* билет(ов).\nПожалуйста, подтвердите действие:`, {
       parse_mode: "Markdown",
