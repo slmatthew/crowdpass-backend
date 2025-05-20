@@ -8,10 +8,10 @@ class FeaturesService {
     const tplt = process.env.TELEGRAM_PAYMENTS_LIVE_TOKEN;
     const tptt = process.env.TELEGRAM_PAYMENTS_TEST_TOKEN;
 
-    if(!tplt && !tptt) {
+    if((!tplt && !tptt) || (tplt?.length === 0 && tptt?.length === 0)) {
       this.disableTelegramPayments();
     } else if(useTest || (process.env.NODE_ENV === 'development' && useTest === undefined)) {
-      if(!tptt) {
+      if(!tptt || tptt.length === 0) {
         this.disableTelegramPayments();
       } else {
         this.TELEGRAM_PAYMENTS_ENABLED = true;
@@ -19,7 +19,7 @@ class FeaturesService {
         this.TELEGRAM_PAYMENTS_LIVE_TOKEN = tplt ?? '';
         this.TELEGRAM_PAYMENTS_TEST_TOKEN = tptt;
       }
-    } else if(tplt) {
+    } else if(tplt && tplt.length > 0) {
       this.TELEGRAM_PAYMENTS_ENABLED = true;
       this.TELEGRAM_PAYMENTS_LIVE = true;
       this.TELEGRAM_PAYMENTS_LIVE_TOKEN = tplt;

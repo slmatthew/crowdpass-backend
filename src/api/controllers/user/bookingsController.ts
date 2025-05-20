@@ -5,6 +5,7 @@ import { formatAmount } from "@/bots/telegram/utils/formatAmount";
 import { BookingService } from "@/services/bookingService";
 import { BookingError } from "@/types/errors/BookingError";
 import { Request, Response } from "express";
+import { features } from "@/services/featuresService";
 
 const TELEGRAM_PAYMENTS_LIVE = process.env.NODE_ENV !== 'development';
 const TELEGRAM_PAYMENTS_TOKEN = TELEGRAM_PAYMENTS_LIVE ? process.env.TELEGRAM_PAYMENTS_LIVE_TOKEN : process.env.TELEGRAM_PAYMENTS_TEST_TOKEN;
@@ -20,6 +21,12 @@ export async function myBookings(req: Request, res: Response) {
 
 export async function getTelegramInvoiceLink(req: Request, res: Response) {
   if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
+  if(
+    (features.isTelegramPaymentsWorking() && !features.isTelegramPaymentsTesting()) ||
+    !features.isTelegramPaymentsWorking()
+  ) {
+    return res.status(418).json({ message: 'Оплата недоступна' });
+  }
 
   const id = Number(req.params.id);
   const booking = await BookingService.getById(id);
