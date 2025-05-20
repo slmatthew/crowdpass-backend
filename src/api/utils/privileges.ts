@@ -14,6 +14,16 @@ const rolesRootOrAdmin = (user: UserAdmin): boolean => {
  * manage - create, update, delete
  */
 export const privileges = {
+  organizers: {
+    create: rolesRootOrAdmin,
+    update: async (user: UserAdmin, organizerId: number) => {
+      if(!user.admin) return false;
+      if(user.admin.role === 'ROOT' || user.admin.role === 'ADMIN') return true;
+
+      return user.admin.organizerId === organizerId;
+    },
+    delete: (user: UserAdmin, organizerId: number) => rolesRootOrAdmin(user),
+  },
   categories: {
     /**
      * Создание, редактирование и soft-delete категорий и подкатегорий

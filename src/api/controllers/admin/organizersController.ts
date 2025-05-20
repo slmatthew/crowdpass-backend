@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { OrganizerService } from "@/services/organizerService";
 import { UserService } from "@/services/userService";
+import { privileges } from "@/api/utils/privileges";
 
 export async function getAllOrganizers(req: Request, res: Response) {
   const organizers = await OrganizerService.getAll();
@@ -40,6 +41,8 @@ export async function getAvailableOrganizers(req: Request, res: Response) {
 }
 
 export async function createOrganizer(req: Request, res: Response) {
+  if(!req.user || !privileges.organizers.create(req.user)) return res.status(403).json({ message: 'Доступ запрещён' });
+
   const { name, description, contacts } = req.body;
   if(!name) return res.status(400).json({ message: 'Отсутствует наименование организатора' });
 
@@ -53,6 +56,8 @@ export async function createOrganizer(req: Request, res: Response) {
 
 export async function updateOrganizer(req: Request, res: Response) {
   const id = Number(req.params.id);
+
+  if(!req.user || !privileges.organizers.update(req.user, id)) return res.status(403).json({ message: 'Доступ запрещён' });
   
   const { name, description, contacts } = req.body;
   if(!name) return res.status(400).json({ message: 'Отсутствует наименование организатора' });
@@ -67,6 +72,8 @@ export async function updateOrganizer(req: Request, res: Response) {
 
 export async function deleteOrganizer(req: Request, res: Response) {
   const id = Number(req.params.id);
+
+  if(!req.user || !privileges.organizers.delete(req.user, id)) return res.status(403).json({ message: 'Доступ запрещён' });
 
   try {
     await OrganizerService.delete(id);
