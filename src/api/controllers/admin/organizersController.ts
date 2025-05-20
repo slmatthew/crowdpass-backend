@@ -39,9 +39,40 @@ export async function getAvailableOrganizers(req: Request, res: Response) {
   res.json(organizers);
 }
 
+export async function createOrganizer(req: Request, res: Response) {
+  const { name, description, contacts } = req.body;
+  if(!name) return res.status(400).json({ message: 'Отсутствует наименование организатора' });
+
+  try {
+    const created = await OrganizerService.create({ name, description, contacts });
+    res.status(201).json(created);
+  } catch(err) {
+    res.status(500).json({ message: 'Не удалось создать организатора' });
+  }
+}
+
 export async function updateOrganizer(req: Request, res: Response) {
   const id = Number(req.params.id);
-  const data = req.body;
-  const updated = await OrganizerService.update(id, data);
-  res.json(updated);
+  
+  const { name, description, contacts } = req.body;
+  if(!name) return res.status(400).json({ message: 'Отсутствует наименование организатора' });
+
+  try {
+    const updated = await OrganizerService.update(id, { name, description, contacts });
+    res.status(200).json(updated);
+  } catch(err) {
+    res.status(500).json({ message: 'Не удалось создать организатора' });
+  }
+}
+
+export async function deleteOrganizer(req: Request, res: Response) {
+  const id = Number(req.params.id);
+
+  try {
+    await OrganizerService.delete(id);
+    res.status(204).send();
+  } catch(err) {
+    console.error('[API] deleteOrganizer', err);
+    res.status(500).json({ message: 'Не удалось удалить организатора' });
+  }
 }

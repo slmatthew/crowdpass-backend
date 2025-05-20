@@ -9,7 +9,8 @@ router.get('/me', oc.getMyOrganizer);
 router.get('/:id', oc.getOrganizerById);
 
 router.patch('/:id', oc.updateOrganizer);
-router.post('/');
-router.delete('/:id');
+router.post('/', oc.createOrganizer);
+
+router.delete('/:id', oc.deleteOrganizer);
 
 export default router;

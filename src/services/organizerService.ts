@@ -1,3 +1,4 @@
+import { Organizer } from "@prisma/client";
 import { prisma } from "../db/prisma";
 
 export class OrganizerService {
@@ -37,8 +38,27 @@ export class OrganizerService {
     return this.getById(admin.organizerId);
   }
 
-  static async update(id: number, data: any) {
-    return prisma.organizer.update({ where: { id }, data });
+  static async create(data: {
+    name: string;
+    description?: string;
+    contacts?: string;
+  }): Promise<Organizer> {
+    return prisma.organizer.create({ data });
+  }
+
+  static async update(id: number, data: {
+    name?: string;
+    description?: string;
+    contacts?: string;
+  }): Promise<Organizer | null> {
+    return prisma.organizer.update({
+      where: { id },
+      data,
+    });
+  }
+
+  static async delete(id: number) {
+    return prisma.organizer.delete({ where: { id } });
   }
 
   static async getAdminAvailableOrganizers(organizerId: number | null = null, include : object = {}) {
