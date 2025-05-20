@@ -120,7 +120,7 @@ export class CoreTicketsController<C extends PlatformContext, P extends Platform
     const qrImageBuffer = await QRCode.toBuffer(qrData, { type: 'png' });
 
     const text =
-      `🎟️ ${ticket.ticketType.event.name} – ${ticket.ticketType.name}\n\n` +
+      `🎟️ ${ticket.ticketType.event.name} – ${ticket.ticketType.name} (№${ticket.ticketType.event.id}-${ticket.id})\n\n` +
       `${ticket.ticketType.event.description}\n\n` +
       `Для прохода на мероприятие покажите QR-код на входе`;
 

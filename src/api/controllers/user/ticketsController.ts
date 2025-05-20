@@ -28,7 +28,6 @@ export async function myTickets(req: Request, res: Response) {
       const { event, quantity, ...ticketType } = tTicketType;
       if(event) {
         if(Date.now() >= new Date(event.endDate).getTime()) {
-          dBookings.delete(b.id);
           continue;
         }
 
@@ -41,6 +40,10 @@ export async function myTickets(req: Request, res: Response) {
       }
     }
   }
+
+  dBookings.forEach(b => {
+    if(!dTickets.find(t => t.bookingId === b.id)) dBookings.delete(b.id);
+  });
 
   res.json({
     tickets: dTickets,
