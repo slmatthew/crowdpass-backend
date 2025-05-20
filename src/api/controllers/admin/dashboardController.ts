@@ -3,6 +3,7 @@ import { UserService } from "@/services/userService";
 import { AdminDashboardService } from "@/services/adminDashboardService";
 import { TicketService } from "@/services/ticketService";
 import { TicketStatus } from "@prisma/client";
+import { privileges } from "@/api/utils/privileges";
 
 export const dashboardController = {
   async getSummary(req: Request, res: Response) {
@@ -41,8 +42,8 @@ export const dashboardController = {
     const now = new Date();
     const event = ticket.ticketType.event;
 
-    if(req.admin!.role === 'MANAGER') {
-      if(req.admin!.organizerId !== event.organizerId) return res.status(403).json({ message: 'Вы не можете проверять билеты на этом мероприятии' });
+    if(!privileges.organizers.updateAndValidate(req.user!, event.organizerId)) {
+      return res.status(403).json({ message: 'Вы не можете проверять билеты на этом мероприятии' });
     }
     
     const result = {

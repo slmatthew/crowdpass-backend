@@ -16,7 +16,7 @@ const rolesRootOrAdmin = (user: UserAdmin): boolean => {
 export const privileges = {
   organizers: {
     create: rolesRootOrAdmin,
-    update: async (user: UserAdmin, organizerId: number) => {
+    updateAndValidate: async (user: UserAdmin, organizerId: number) => {
       if(!user.admin) return false;
       if(user.admin.role === 'ROOT' || user.admin.role === 'ADMIN') return true;
 
