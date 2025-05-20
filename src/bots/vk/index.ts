@@ -9,12 +9,25 @@ import { handleProfile } from './handlers/profileHandler';
 import { handleNavigation } from './handlers/navigationHandler';
 import { handleTickets } from './handlers/ticketsHandler';
 
-const vk = new VK({
-  token: process.env.VK_BOT_TOKEN!,
-  pollingGroupId: Number(process.env.VK_BOT_ID!),
-});
+const vk = (() => {
+  try {
+    const vkApi = new VK({
+      token: process.env.VK_BOT_TOKEN!,
+      pollingGroupId: Number(process.env.VK_BOT_ID!),
+    });
+
+    return vkApi;
+  } catch(err) {
+    return null as unknown as VK;
+  }
+})();
 
 export async function startVkBot() {
+  if(!process.env.VK_BOT_TOKEN || process.env.VK_BOT_TOKEN.length === 0) {
+    console.warn('⚠️ VK bot token was not provided');
+    return;
+  }
+
   const router = new VkRouter();
   const stepRouter = new StepRouter();
 

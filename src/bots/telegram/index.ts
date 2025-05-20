@@ -13,7 +13,9 @@ import { isRootSetupActive } from "@/utils/checkRoot";
 
 import { claimCommand } from "./commands";
 
-const bot = new Bot<SharedContext>(process.env.TELEGRAM_BOT_TOKEN as string);
+const token: string = process.env.NODE_ENV === 'development' ? `${process.env.TELEGRAM_BOT_TOKEN}/test` : process.env.TELEGRAM_BOT_TOKEN!;
+
+const bot = new Bot<SharedContext>(token);
 
 function initialSession(): SessionData {
   return { step: null };

@@ -1,12 +1,9 @@
 import express from 'express';
 import cors from 'cors';
 import path from 'path';
-import dotenv from 'dotenv';
-
-dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = Number(process.env.API_PORT) || 3000;
 
 const allowedOrigins = [
   process.env.AP_BASE_URI,

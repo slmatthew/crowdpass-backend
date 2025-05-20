@@ -1,13 +1,21 @@
+import dotenv from "dotenv";
+
+const ENV_PATH = process.env.NODE_ENV === 'development' ? '.env.dev' : '.env';
+
+console.info('ℹ️', 'NODE_ENV:', process.env.NODE_ENV);
+console.info('ℹ️', '.env path:', ENV_PATH);
+
+dotenv.config({
+  path: ENV_PATH,
+});
+
 import { prisma } from "./db/prisma";
 import { startTelegramBot, telegram } from "./bots/telegram/";
 import { startVkBot, vk } from "./bots/vk";
 import { startApiServer } from "./api";
 import { MessageQueueService } from "./services/messageQueueService";
 import { scheduleExpiredBookingCleanup } from "./utils/schedulers/cleanupExpiredBookings";
-import dotenv from "dotenv";
 import { prepareRootSetup } from "./utils/checkRoot";
-
-dotenv.config();
 
 let shuttingDown = false;
 
@@ -32,7 +40,7 @@ async function shutdown() {
 
   try {
     await telegram.stop();
-    await vk.updates.stop();
+    if(vk) await vk.updates.stop();
 
     // TODO: остановка очередей/таймеров, если надо
     // MessageQueueService.stop();
