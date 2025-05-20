@@ -3,6 +3,7 @@ import { BookingService } from "@/services/bookingService";
 import { EventService } from "@/services/eventService";
 import { BookingStatus, Event } from "@prisma/client";
 import { Request, Response } from "express";
+import { features } from "@/services/featuresService";
 
 export async function me(req: Request, res: Response) {
   if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
@@ -74,5 +75,14 @@ export async function dashboard(req: Request, res: Response) {
     events,
     bookings,
     tickets,
+  });
+}
+
+export async function getFeatures(req: Request, res: Response) {
+  const isTelegramPaymentsWorking = features.isTelegramPaymentsWorking();
+
+  res.json({
+    "tp": isTelegramPaymentsWorking,
+    "stable": process.env.NODE_ENV === 'production',
   });
 }

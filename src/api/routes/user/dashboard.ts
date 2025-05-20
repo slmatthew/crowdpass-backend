@@ -6,5 +6,6 @@ const router = Router();
 
 router.get('/', authUser, c.dashboard);
 router.get('/me', authUser, c.me);
+router.get('/features', authUser, c.getFeatures);
 
 export default router;
