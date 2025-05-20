@@ -3,9 +3,6 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "dev:api": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/devApiServer.ts",
-    "dev:bot:telegram": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/devTelegramBot.ts",
-    "dev:bot:vk": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/devVkBot.ts",
     "dev": "ts-node-dev --respawn --transpile-only --require tsconfig-paths/register src/index.ts",
     "build": "tsc && tsc-alias",
     "start": "node dist/index.js",
