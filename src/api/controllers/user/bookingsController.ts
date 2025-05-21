@@ -1,4 +1,4 @@
-import { convertBookingToUserBooking, SharedBooking, UserBooking, UserBookingTicket } from "@/api/types/UserBooking";
+import { convertBookingToUserBooking, UserBooking } from "@/api/types/UserBooking";
 import { telegram } from "@/bots/telegram";
 import { currencyCache } from "@/bots/telegram/utils/currencyCache";
 import { formatAmount } from "@/bots/telegram/utils/formatAmount";
@@ -6,9 +6,6 @@ import { BookingService } from "@/services/bookingService";
 import { BookingError } from "@/types/errors/BookingError";
 import { Request, Response } from "express";
 import { features } from "@/services/featuresService";
-
-const TELEGRAM_PAYMENTS_LIVE = process.env.NODE_ENV !== 'development';
-const TELEGRAM_PAYMENTS_TOKEN = TELEGRAM_PAYMENTS_LIVE ? process.env.TELEGRAM_PAYMENTS_LIVE_TOKEN : process.env.TELEGRAM_PAYMENTS_TEST_TOKEN;
 
 export async function myBookings(req: Request, res: Response) {
   if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
@@ -66,7 +63,7 @@ export async function getTelegramInvoiceLink(req: Request, res: Response) {
     `CrowdPass №B${booking.id}`,
     `Ваше бронирование №${booking.id} включает в себя билеты (${booking.bookingTickets.length} шт.) на мероприятие(-я) ${event} общей стоимостью ${formatAmount(price, currency)}`, 
     `${booking.id}-${req.user.id}-booking`, 
-    TELEGRAM_PAYMENTS_TOKEN!, 
+    features.getTelegramPaymentsToken()!, 
     'RUB', 
     labeledPrice
   );
