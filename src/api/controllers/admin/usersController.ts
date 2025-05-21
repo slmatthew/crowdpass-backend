@@ -1,8 +1,9 @@
 import { formatUser } from "@/api/utils/formatters";
 import { privileges } from "@/api/utils/privileges";
 import { UserService } from "@/services/userService";
-import { Role } from "@prisma/client";
+import { Role, User } from "@prisma/client";
 import { Request, Response } from "express";
+import { z } from "zod";
 
 export async function getUsers(req: Request, res: Response) {
   if(!privileges.users.get(req.user!)) return res.status(403).json({ message: "Нет доступа" });
@@ -13,6 +14,21 @@ export async function getUsers(req: Request, res: Response) {
     search: search as string | undefined,
     page: Number(page),
     pageSize: Number(pageSize),
+  });
+
+  result.items = result.items.map(u => {
+    if(u.phone) {
+      const phoneLength = u.phone.length;
+
+      let phone = '';
+      phone += u.phone.slice(0, 1);
+      phone += '*'.repeat(phoneLength - 5);
+      phone += u.phone.slice(phoneLength - 4);
+
+      u.phone = phone;
+    }
+
+    return u;
   });
 
   res.json(result);
@@ -61,10 +77,81 @@ export async function changePlatformId(req: Request, res: Response) {
   }
 
   try {
-    const user = await UserService.forceUpdatePlatformId(Number(userId), targetPlatform, targetId);
+    const platform = targetPlatform === 'vk' ? 'VK' : 'TELEGRAM';
+    const user = await UserService.forceUpdatePlatformId(Number(userId), platform, targetId);
     res.json(formatUser(user));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Ошибка при обновлении ID платформы" });
+  }
+}
+
+export async function resetPlatformId(req: Request, res: Response) {
+  if(!privileges.users.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+
+  const userId = Number(req.params.id);
+  const { targetPlatform } = req.body;
+
+  if(!targetPlatform || (targetPlatform !== 'vk' && targetPlatform !== 'telegram')) {
+    return res.status(400).json({ message: 'Неверно указана платформа', targetPlatform });
+  }
+
+  try {
+    const user = await UserService.findUserById(userId);
+    if(!user) return res.status(404).json({ message: 'Пользователь не найден' });
+
+    const platform = targetPlatform === 'vk' ? 'VK' : 'TELEGRAM';
+
+    if(
+      (targetPlatform === 'vk' && user.telegramId === null) ||
+      (targetPlatform === 'telegram' && user.vkId === null)
+    ) {
+      return res.status(409).json({ message: `${platform} является единственной привязанной платформой пользователя` });
+    }
+
+    const uUser = await UserService.forceUpdatePlatformId(userId, platform, null);
+    res.json(formatUser(uUser));
+  } catch(err) {
+    console.error(err)
+    res.status(500).json({ message: 'Произошла ошибка' });
+  }
+}
+
+const userUpdateInfoSchema = z.object({
+  firstName: z.string().min(2),
+
+  lastName: z
+    .preprocess(val => val === "" ? undefined : val, z.string().min(2).optional()),
+
+  email: z
+    .preprocess(val => val === "" ? undefined : val, z.string().email().optional()),
+
+  removePhone: z.boolean().optional(),
+});
+
+export async function updateInfo(req: Request, res: Response) {
+  if(!privileges.users.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+
+  try {
+    const userId = Number(req.params.id);
+    const validated = userUpdateInfoSchema.parse(req.body);
+
+    if(validated.removePhone) {
+      await UserService.setPhone({ id: userId } as unknown as User, null);
+    }
+
+    if(validated.removePhone !== undefined) delete validated.removePhone;
+
+    const updated = await UserService.update(userId, validated);
+
+    res.json({ ok: !!updated });
+  } catch(err: any) {
+    console.error(err);
+
+    if(err instanceof z.ZodError) {
+      return res.status(400).json({ message: "Невалидные данные", errors: err.errors });
+    }
+
+    return res.status(500).json({ message: 'Произошла ошибка' });
   }
 }

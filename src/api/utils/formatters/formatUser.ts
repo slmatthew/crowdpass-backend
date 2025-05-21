@@ -1,7 +1,7 @@
 import { User } from "@prisma/client";
 
 export function formatUser(user: User) {
-  return {
+  const result = {
     id: user.id,
     telegramId: user.telegramId,
     vkId: user.vkId,
@@ -11,4 +11,17 @@ export function formatUser(user: User) {
     phone: user.phone,
     createdAt: user.createdAt,
   };
+
+  if(user.phone) {
+    const phoneLength = user.phone.length;
+
+    let phone = '';
+    phone += user.phone.slice(0, 1);
+    phone += '*'.repeat(phoneLength - 5);
+    phone += user.phone.slice(phoneLength - 4);
+
+    result.phone = phone;
+  }
+
+  return result;
 }

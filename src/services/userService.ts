@@ -5,6 +5,12 @@ import { UserError, UserErrorCodes } from "@/types/errors/UserError";
 
 type UserAdmin = User & { admin?: Admin };
 
+interface UserUpdateData {
+  firstName: string;
+  email?: string | undefined;
+  lastName?: string | undefined;
+}
+
 export class UserService {
   static async findOrCreateUser(data: {
     telegramId?: string;
@@ -100,7 +106,7 @@ export class UserService {
     });
   }
 
-  static async forceUpdatePlatformId(userId: number, targetPlatform: Platform, targetId: string) {
+  static async forceUpdatePlatformId(userId: number, targetPlatform: Platform, targetId: string | null) {
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if(!user) {
       throw new UserError(UserErrorCodes.USER_NOT_FOUND, "Пользователь не найден");
@@ -295,12 +301,19 @@ export class UserService {
     });
   }
 
-  static async setPhone(user: User, phone: string) {
+  static async setPhone(user: User, phone: string | null) {
     const userId = user.id;
 
     return prisma.user.update({
       where: { id: userId },
       data: { phone },
+    });
+  }
+
+  static async update(userId: number, data: UserUpdateData) {
+    return prisma.user.update({
+      where: { id: userId },
+      data,
     });
   }
 }
