@@ -29,6 +29,8 @@ export async function updateBookingStatus(req: Request, res: Response) {
   const id = Number(req.params.id);
   const { status } = req.body;
 
+  if(!["ACTIVE", "CANCELLED", "PAID"].includes(status)) return res.status(400).json({ message: 'Некорректный статус' });
+
   const allowStatusChange = await BookingService.canUserManageBooking(req.user?.id || 0, id);
 
   try {
@@ -43,6 +45,18 @@ export async function updateBookingStatus(req: Request, res: Response) {
         status,
       }
     });
+
+    if(status === 'PAID') {
+      BookingService.logBookingPaid(
+        req.user?.id || 0,
+        id,
+        {
+          source: 'ap',
+          forced: true,
+          amount: 0,
+        }
+      );
+    }
 
     /* format? */
     getBookingById(req, res);

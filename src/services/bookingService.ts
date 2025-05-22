@@ -3,6 +3,8 @@ import { Booking, BookingStatus, TicketStatus } from "@prisma/client";
 import { BookingError, BookingErrorCodes } from "../types/errors/BookingError";
 import { TicketService } from "./ticketService";
 import { EventService } from "./eventService";
+import { ActionLogAction } from "@/constants/appConstants";
+import { logAction } from "@/utils/logAction";
 
 interface BookingQueryParams {
   status?: BookingStatus;
@@ -383,5 +385,41 @@ export class BookingService {
     }
 
     return true;
+  }
+
+  static async logBookingPaid(
+    actorId: number,
+    bookingId: number,
+    metadata: {
+      source: string;
+      forced: boolean;
+      amount: number;
+    }
+  ) {
+    const alreadyLogged = await prisma.actionLog.findMany({
+      where: {
+        action: ActionLogAction.BOOKING_PAID,
+        targetType: 'booking',
+        targetId: bookingId,
+      },
+    });
+
+    if(alreadyLogged.length > 0) {
+      await prisma.actionLog.deleteMany({
+        where: {
+          id: {
+            in: alreadyLogged.map(l => l.id),
+          }
+        }
+      });
+    }
+
+    await logAction({
+      actorId,
+      action: ActionLogAction.BOOKING_PAID,
+      targetType: 'booking',
+      targetId: bookingId,
+      metadata,
+    });
   }
 }

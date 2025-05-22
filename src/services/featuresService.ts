@@ -1,4 +1,6 @@
 class FeaturesService {
+  private SIMPLE_PAYMENTS_ENABLED: boolean = false;
+
   private TELEGRAM_PAYMENTS_ENABLED: boolean = false;
   private TELEGRAM_PAYMENTS_LIVE: boolean = false;
   private TELEGRAM_PAYMENTS_LIVE_TOKEN: string = '';
@@ -28,6 +30,11 @@ class FeaturesService {
       this.disableTelegramPayments();
     }
 
+    if(useTest !== undefined && useTest) {
+      this.SIMPLE_PAYMENTS_ENABLED = true;
+    }
+
+    console.info('💸 Simple payments status:', this.SIMPLE_PAYMENTS_ENABLED ? 'enabled' : 'disabled');
     console.info('💸 Telegram Payments status:', this.TELEGRAM_PAYMENTS_ENABLED ? 'working,' : 'not working,', this.isTelegramPaymentsTesting() ? 'test mode' : 'live mode');
   }
 
@@ -58,6 +65,10 @@ class FeaturesService {
     }
 
     return undefined;
+  }
+
+  isSimplePaymentsWorking(): boolean {
+    return this.SIMPLE_PAYMENTS_ENABLED;
   }
 }
 

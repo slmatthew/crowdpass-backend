@@ -29,6 +29,16 @@ export async function sendMyBookingPay(ctx: MessageContext, bookingId: number, p
 
   try {
     const res = await BookingService.payBooking(booking.id);
+
+    BookingService.logBookingPaid(
+      user.id,
+      booking.id,
+      {
+        source: 'vk-bot',
+        forced: false,
+        amount: 0,
+      }
+    );
   
     if(res) await ctx.send('✅ Бронирование успешно оплачено');
     else await ctx.send('❌ Произошла ошибка при оплате бронирования');

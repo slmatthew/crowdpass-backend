@@ -20,7 +20,7 @@ export async function sendMyBookings(ctx: ControllerContext, page: number = 1) {
 export async function sendMyBookingPaySimple(ctx: ControllerContext, bookingId: number, page: number) {
   if(
     (features.isTelegramPaymentsWorking() && !features.isTelegramPaymentsTesting()) ||
-    !features.isTelegramPaymentsWorking()
+    !features.isSimplePaymentsWorking()
   ) {
     try {
       await ctx.answerCallbackQuery('❌ Недоступно');
@@ -41,6 +41,18 @@ export async function sendMyBookingPaySimple(ctx: ControllerContext, bookingId: 
   }
 
   const res = await BookingService.payBooking(booking.id);
+
+  if(res) {
+    BookingService.logBookingPaid(
+      ctx.sfx.user?.id ?? 0,
+      booking.id,
+      {
+        source: 'telegram-bot',
+        forced: false,
+        amount: 0,
+      }
+    );
+  }
   
   try {
     if(res) {
@@ -62,7 +74,14 @@ export async function sendMyBookingPaySimple(ctx: ControllerContext, bookingId: 
 }
 
 export async function sendMyBookingPay(ctx: ControllerContext, bookingId: number, page: number) {
-  if(!features.isTelegramPaymentsWorking()) return ctx.answerCallbackQuery('⚠️ Оплата недоступна');
+  if(!features.isTelegramPaymentsWorking()) {
+    if(features.isSimplePaymentsWorking()) {
+      await sendMyBookingPaySimple(ctx, bookingId, page);
+      return;
+    } else {
+      return ctx.answerCallbackQuery('⚠️ Оплата недоступна');
+    }
+  }
 
   const user = ctx.sfx.user!;
   const booking = await BookingService.getById(bookingId);
@@ -163,14 +182,31 @@ export async function sendMyBookingPaySuccess(ctx: SharedContext) {
   const match = payment.invoice_payload.match(/^(\d+)-(\d+)-booking$/);
   if(!match) return await ctx.reply(`❌ Произошла ошибка`);;
 
-  const bookingId = Number(match[1]);
-  await BookingService.payBooking(bookingId);
+  try {
+    const bookingId = Number(match[1]);
+    await BookingService.payBooking(bookingId);
 
-  await ctx.reply(`✅ Бронирование №B${bookingId} оплачено`, {
-    reply_markup: new InlineKeyboard()
-      .text('🎟️ Мои бронирования', TelegramStrategy.callbackPayloads.myBookingsPage(1)).row()
-      .text('🎫 Мои билеты', TelegramStrategy.callbackPayloads.myTicketsPage(1)),
-  });
+    const currency = await currencyCache.getCurrency();
+
+    BookingService.logBookingPaid(
+      ctx.sfx.user?.id ?? 0,
+      bookingId,
+      {
+        source: 'telegram-bot',
+        forced: false,
+        amount: payment.total_amount / Math.pow(10, currency.exp),
+      }
+    );
+
+    await ctx.reply(`✅ Бронирование №B${bookingId} оплачено`, {
+      reply_markup: new InlineKeyboard()
+        .text('🎟️ Мои бронирования', TelegramStrategy.callbackPayloads.myBookingsPage(1)).row()
+        .text('🎫 Мои билеты', TelegramStrategy.callbackPayloads.myTicketsPage(1)),
+    });
+  } catch(err) {
+    console.error('[Telegram] successfulPayment', err);
+    await ctx.reply('❌ Произошла ошибка, обратитесь в /support', extraGoToHomeKeyboard);
+  }
 }
 
 export async function sendMyBookingCancel(ctx: ControllerContext, bookingId: number, page: number) {

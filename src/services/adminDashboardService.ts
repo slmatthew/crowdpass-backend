@@ -1,3 +1,4 @@
+import { string } from "zod";
 import { prisma } from "../db/prisma";
 
 export interface LogFilters {
@@ -42,5 +43,27 @@ export class AdminDashboardService {
     ]);
 
     return { logs, total };
+  }
+  
+  static async getRegistersByDay(): Promise<{
+    day: string;
+    count: number;
+  }[]> {
+    const users = await prisma.user.findMany({
+      select: {
+        createdAt: true,
+      }
+    });
+
+    const registrationsByDay: Record<string, number> = {};
+
+    for(const user of users) {
+      const day = user.createdAt.toISOString().slice(0, 10);
+      registrationsByDay[day] = (registrationsByDay[day] || 0) + 1;
+    }
+
+    return Object.entries(registrationsByDay)
+            .sort(([a], [b]) => a.localeCompare(b))
+            .map(([day, count]) => ({ day, count }));
   }
 }

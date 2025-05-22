@@ -94,5 +94,9 @@ export const dashboardController = {
     result.allowed = true;
 
     res.json(result);
-  }
+  },
+  async getRegistersByDay(req: Request, res: Response) {
+    const result = await AdminDashboardService.getRegistersByDay();
+    res.json(result);
+  },
 };
