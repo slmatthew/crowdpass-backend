@@ -1,6 +1,7 @@
 import { EventError, EventErrorCodes } from '@/types/errors/EventError';
 import { prisma } from '../db/prisma';
 import { Admin, Event, Role } from '@prisma/client';
+import { ActionLogAction } from '@/constants/appConstants';
 
 interface EventExtendedOptions {
   organizer?: boolean,
@@ -265,10 +266,60 @@ export class EventService {
       },
     });
   };
-}
 
-export async function getEventById(id: number) {
-  return prisma.event.findUnique({
-    where: { id },
-  });
-};
+  static async getEventSalesByDay(eventId: number) {
+    const logs = await prisma.actionLog.findMany({
+      where: {
+        action: ActionLogAction.BOOKING_PAID,
+        metadata: {
+          path: ['events'],
+          array_contains: [[eventId]],
+        },
+      },
+      select: {
+        createdAt: true,
+        metadata: true,
+      },
+    });
+
+    const result: Record<string, number> = {};
+
+    for(const log of logs) {
+      const date = log.createdAt.toISOString().slice(0, 10);
+      const entry = (log.metadata as any).events?.find((e: [number, number]) => e[0] === eventId);
+
+      if(entry) {
+        result[date] = (result[date] || 0) + entry[1];
+      }
+    }
+
+    return Object.entries(result)
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([day, value]) => ({ day, value }));
+  }
+
+  static async getEventTotalRevenue(eventId: number) {
+    const logs = await prisma.actionLog.findMany({
+      where: {
+        action: ActionLogAction.BOOKING_PAID,
+        metadata: {
+          path: ['events'],
+          array_contains: [[eventId]],
+        },
+      },
+      select: {
+        metadata: true,
+      },
+    });
+
+    let total = 0;
+    for(const log of logs) {
+      const entry = (log.metadata as any).events?.find((e: [number, number]) => e[0] === eventId);
+      if(entry) {
+        total += entry[1];
+      }
+    }
+
+    return total;
+  }
+}

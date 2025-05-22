@@ -46,7 +46,20 @@ export async function getEventOverview(req: Request, res: Response) {
   const event = await EventService.getEventOverview(id);
   if (!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
 
+  const revenue = await EventService.getEventTotalRevenue(event.id);
+  (event as any).revenue = revenue;
+
   res.json(event);
+}
+
+export async function getEventSalesByDay(req: Request, res: Response) {
+  const id = Number(req.params.id);
+  if(!(await privileges.events.update(req.user!, id))) {
+    return res.status(403).json({ message: 'Доступ запрещен' });
+  }
+
+  const result = await EventService.getEventSalesByDay(id);
+  res.json(result);
 }
 
 const updateEventSchema = z.object({
