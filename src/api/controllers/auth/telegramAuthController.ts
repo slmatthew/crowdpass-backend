@@ -4,6 +4,7 @@ import { signAccessToken, signRefreshToken } from "@/api/utils/signToken";
 import { logAction } from "@/utils/logAction";
 import { UserService } from "@/services/userService";
 import { parse, validate } from "@telegram-apps/init-data-node";
+import { ActionLogAction } from "@/constants/appConstants";
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN!;
 
@@ -36,7 +37,7 @@ export class TelegramAuth {
 
       await logAction({
         actorId: user.id,
-        action: "ap.auth.telegram",
+        action: ActionLogAction.AUTH_TELEGRAM,
         targetType: "user",
         targetId: user.id,
       });

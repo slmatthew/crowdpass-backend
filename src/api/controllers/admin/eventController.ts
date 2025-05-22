@@ -5,6 +5,7 @@ import { logAction } from "../../../utils/logAction";
 import { extractQueryOptions, formatEvent } from "../../utils/formatters";
 import { getPrismaIncludeOptions } from "../../utils/formatters/formatEvent";
 import { privileges } from "@/api/utils/privileges";
+import { ActionLogAction } from "@/constants/appConstants";
 
 export async function getAllEvents(req: Request, res: Response) {
   const { extended, fields } = extractQueryOptions(req);
@@ -77,7 +78,7 @@ export async function updateEventById(req: Request, res: Response) {
 
     await logAction({
       actorId: req.user?.id || 0,
-      action: 'event.update',
+      action: ActionLogAction.EVENT_UPDATE,
       targetType: 'event',
       targetId: id,
       metadata: {
@@ -114,7 +115,7 @@ export async function createEvent(req: Request, res: Response) {
     if (adminId) {
       await logAction({
         actorId: req.user?.id || 0,
-        action: 'event.create',
+        action: ActionLogAction.EVENT_CREATE,
         targetType: 'event',
         targetId: created.id,
         metadata: created

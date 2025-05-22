@@ -3,6 +3,7 @@ import axios from "axios";
 import { logAction } from "../../../utils/logAction";
 import { signAccessToken, signRefreshToken } from "../../utils/signToken";
 import { UserService } from "@/services/userService";
+import { ActionLogAction } from "@/constants/appConstants";
 
 const VK_APP_ID = process.env.AP_VK_APP_ID!;
 const VK_APP_SECRET = process.env.AP_VK_SECRET_KEY!;
@@ -65,7 +66,7 @@ export async function vkCallback(req: Request, res: Response) {
 
     await logAction({
       actorId: user.id,
-      action: "ap.auth.vk",
+      action: ActionLogAction.AUTH_VK,
       targetType: "user",
       targetId: user.id,
     });

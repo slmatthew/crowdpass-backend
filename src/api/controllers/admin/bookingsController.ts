@@ -4,6 +4,7 @@ import { TicketService } from "../../../services/ticketService";
 import { BookingStatus, Role } from "@prisma/client";
 import { BookingError } from "@/types/errors/BookingError";
 import { logAction } from "../../../utils/logAction";
+import { ActionLogAction } from "@/constants/appConstants";
 
 export async function getBookings(req: Request, res: Response) {
   const { status, userId, eventId, page, limit } = req.query;
@@ -35,7 +36,7 @@ export async function updateBookingStatus(req: Request, res: Response) {
 
     logAction({
       actorId: req.user?.id || 0,
-      action: 'booking.status.update',
+      action: ActionLogAction.BOOKING_STATUS_UPDATE,
       targetId: id,
       targetType: 'booking',
       metadata: {

@@ -3,6 +3,7 @@ import { CommandContext } from "grammy";
 import { TelegramStrategy } from "../controllers/TelegramStrategy";
 import { CoreUsersController } from "@/bots/core/controllers/CoreUsersController";
 import { logAction } from "@/utils/logAction";
+import { ActionLogAction } from "@/constants/appConstants";
 
 const controller = new CoreUsersController(TelegramStrategy);
 
@@ -20,7 +21,7 @@ export const claimCommand = async (ctx: CommandContext<SharedContext>) => {
 
   if(result.ok) await logAction({
     actorId: ctx.sfx.user.id,
-    action: 'system.root-purpose',
+    action: ActionLogAction.ROOT_PURPOSE,
     targetType: 'user',
     targetId: ctx.sfx.user.id,
     metadata: { code: providedCode },
