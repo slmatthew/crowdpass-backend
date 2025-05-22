@@ -1,4 +1,3 @@
-import { string } from "zod";
 import { prisma } from "../db/prisma";
 
 export interface LogFilters {
