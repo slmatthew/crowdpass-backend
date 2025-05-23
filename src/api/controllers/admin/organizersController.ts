@@ -57,7 +57,7 @@ export async function createOrganizer(req: Request, res: Response) {
 export async function updateOrganizer(req: Request, res: Response) {
   const id = Number(req.params.id);
 
-  if(!req.user || !privileges.organizers.updateAndValidate(req.user, id)) return res.status(403).json({ message: 'Доступ запрещён' });
+  if(!req.user || !(await privileges.organizers.updateAndValidate(req.user, id))) return res.status(403).json({ message: 'Доступ запрещён' });
   
   const { name, description, contacts } = req.body;
   if(!name) return res.status(400).json({ message: 'Отсутствует наименование организатора' });

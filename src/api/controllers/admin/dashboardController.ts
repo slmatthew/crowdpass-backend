@@ -42,7 +42,7 @@ export const dashboardController = {
     const now = new Date();
     const event = ticket.ticketType.event;
 
-    if(!privileges.organizers.updateAndValidate(req.user!, event.organizerId)) {
+    if(!(await privileges.organizers.updateAndValidate(req.user!, event.organizerId))) {
       return res.status(403).json({ message: 'Вы не можете проверять билеты на этом мероприятии' });
     }
     

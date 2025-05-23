@@ -39,7 +39,7 @@ export async function getEventById(req: Request, res: Response) {
 
 export async function getEventOverview(req: Request, res: Response) {
   const id = Number(req.params.id);
-  if (!privileges.events.update(req.user!, id)) {
+  if (!(await privileges.events.update(req.user!, id))) {
     return res.status(403).json({ message: "Нет доступа" });
   }
 
@@ -76,7 +76,7 @@ const updateEventSchema = z.object({
 export async function updateEventById(req: Request, res: Response) {
   try {
     const id = parseInt(req.params.id);
-    if(!privileges.events.update(req.user!, id)) return res.status(403).json({ message: "Нет доступа" });
+    if(!(await privileges.events.update(req.user!, id))) return res.status(403).json({ message: "Нет доступа" });
 
     const validated = updateEventSchema.parse(req.body);
     
