@@ -432,7 +432,7 @@ export class BookingService {
 		
 		const eventAmountMap: Record<number, number> = {};
 
-		for (const bt of booking.bookingTickets) {
+		for(const bt of booking.bookingTickets) {
 			const ticketType = bt.ticket.ticketType;
 			if (!ticketType) continue;
 
@@ -442,16 +442,16 @@ export class BookingService {
 			eventAmountMap[eventId] = (eventAmountMap[eventId] || 0) + (price * amountMultiplier);
 		}
 
-		for (const [eventIdStr, amount] of Object.entries(eventAmountMap)) {
+		for(const [eventIdStr, amount] of Object.entries(eventAmountMap)) {
 			finalMetadata.events.push([Number(eventIdStr), amount]);
-
-			await logAction({
-				actorId,
-				action: ActionLogAction.BOOKING_PAID,
-				targetType: "booking",
-				targetId: bookingId,
-				metadata: finalMetadata,
-			});
 		}
+
+		await logAction({
+			actorId,
+			action: ActionLogAction.BOOKING_PAID,
+			targetType: "booking",
+			targetId: bookingId,
+			metadata: finalMetadata,
+		});
 	}
 }
