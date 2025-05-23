@@ -9,6 +9,8 @@ export async function setPhone(ctx: ControllerContext) {
   const { contact } = ctx.update.message;
   if(contact.user_id !== Number(ctx.sfx.user.telegramId)) return ctx.reply('❌ Отправьте свой номер телефона', extraGoToHomeKeyboard);
 
+  const phone = contact.phone_number.startsWith('+', 0) ? contact.phone_number.slice(1) : contact.phone_number;
+
   await UserService.setPhone(ctx.sfx.user, contact.phone_number);
   await ctx.reply('✅ Вы обновили свой номер телефона', extraGoToHomeKeyboard);
 }
