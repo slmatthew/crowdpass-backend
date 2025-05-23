@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { UserService } from "@/services/userService";
 import { AdminDashboardService } from "@/services/adminDashboardService";
 import { TicketService } from "@/services/ticketService";
-import { TicketStatus } from "@prisma/client";
 import { privileges } from "@/api/utils/privileges";
 
 export const dashboardController = {
@@ -33,10 +32,20 @@ export const dashboardController = {
     res.json(user);
   },
   async validateTicket(req: Request, res: Response) {
-    const { secret, makeUsed } = req.body;
-    if(secret === undefined) return res.status(404).json({ message: 'Билет не найден' });
+    const { secret, ticketCode, makeUsed } = req.body;
+    if(secret === undefined && ticketCode === undefined) return res.status(404).json({ message: 'Билет не найден' });
 
-    const ticket = await TicketService.findTicketBySecret(secret);
+    let ticket;
+
+    if(ticketCode !== undefined) {
+      const [eventId, ticketId] = ticketCode.split("-").map(Number);
+      if(!eventId || !ticketId) return res.status(400).json({ message: 'Неверный формат номера' });
+
+      ticket = await TicketService.findTicketByEventAndTicketIds(eventId, ticketId);
+    } else {
+      ticket = await TicketService.findTicketBySecret(secret);
+    }
+
     if(!ticket) return res.status(404).json({ message: 'Билет не найден' });
 
     const now = new Date();
@@ -47,7 +56,7 @@ export const dashboardController = {
     }
     
     const result = {
-      secret: secret,
+      secret: ticket.qrCodeSecret,
       status: ticket.status,
       ticketId: ticket.id,
       ticketType: {

@@ -114,4 +114,32 @@ export class TicketService {
       }
     });
   }
+
+  static async findTicketByEventAndTicketIds(eventId: number, ticketId: number) {
+    return prisma.ticket.findFirst({
+      where: {
+        id: ticketId,
+        ticketType: {
+          eventId,
+        },
+      },
+      include: {
+        ticketType: {
+          include: {
+            event: true,
+          }
+        },
+        bookingTickets: {
+          orderBy: { id: 'desc' },
+          include: {
+            booking: {
+              include: {
+                user: true,
+              }
+            }
+          }
+        }
+      }
+    });
+  }
 }
