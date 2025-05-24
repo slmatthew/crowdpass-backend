@@ -16,7 +16,7 @@ export class TicketService {
     return randomBytes(16).toString('hex');
   }
 
-  static async getTicketById(ticketId: number): Promise<TicketExtended | null> {
+  static async getTicketById(ticketId: number): Promise<Required<TicketExtended> | null> {
     return prisma.ticket.findUnique({
       where: { id: ticketId },
       include: {
