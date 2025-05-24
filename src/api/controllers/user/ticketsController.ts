@@ -1,4 +1,5 @@
 import { BookingService } from "@/services/bookingService";
+import { TicketService } from "@/services/ticketService";
 import { Booking, Ticket, TicketType, Event } from "@prisma/client";
 import { Request, Response } from "express";
 
@@ -13,7 +14,7 @@ export async function myTickets(req: Request, res: Response) {
   const dEvents = new Map<number, Event>();
   const dBookings = new Map<number, DisplayBooking>();
   const dTicketTypes = new Map<number, DisplayTicketType>();
-  const dTickets: (Ticket & { bookingId: number })[] = [];
+  const dTickets: (Ticket & { bookingId: number; purchaseDate: Date | null; })[] = [];
 
   for(const b of bookings) {
     dBookings.set(b.id, {
@@ -33,9 +34,14 @@ export async function myTickets(req: Request, res: Response) {
 
         dEvents.set(event.id, event);
         dTicketTypes.set(bt.ticket.ticketType.id, ticketType);
+
+        let purchaseDate = null;
+        try { purchaseDate = await TicketService.getTicketPurchaseDate(ticket, b); } catch {}
+
         dTickets.push({
           ...ticket,
           bookingId: b.id,
+          purchaseDate,
         });
       }
     }

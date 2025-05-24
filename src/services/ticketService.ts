@@ -1,13 +1,22 @@
 import { prisma } from "../db/prisma";
-import { Ticket, TicketStatus } from "@prisma/client";
+import { Booking, Event, Ticket, TicketStatus, TicketType } from "@prisma/client";
 import { randomBytes } from "crypto";
+import { BookingService } from "./bookingService";
+import { BookingError, BookingErrorCodes } from "../types/errors/BookingError";
+import { ActionLogAction } from "@/constants/appConstants";
+
+interface TicketExtended extends Ticket {
+  ticketType?: TicketType & {
+    event: Event;
+  };
+}
 
 export class TicketService {
   static generateSecret(): string {
     return randomBytes(16).toString('hex');
   }
 
-  static async getTicketById(ticketId: number) {
+  static async getTicketById(ticketId: number): Promise<TicketExtended | null> {
     return prisma.ticket.findUnique({
       where: { id: ticketId },
       include: {
@@ -141,5 +150,64 @@ export class TicketService {
         }
       }
     });
+  }
+
+  static async getTicketPurchaseDate(ticket: TicketExtended | number, booking?: Booking | number): Promise<Date | null> {
+    if(typeof ticket === 'number' || !ticket.ticketType) {
+      const ticketId = typeof ticket === 'number' ? ticket : ticket.id;
+      const dbTicket = await TicketService.getTicketById(ticketId);
+      if(!dbTicket) throw new Error('Unknown ticket');
+
+      ticket = dbTicket;
+    }
+
+    if(ticket.status !== 'SOLD') return null;
+
+    if(booking !== undefined && typeof booking === 'number') {
+      const dbBooking = await BookingService.getById(booking);
+      if(!dbBooking) throw new BookingError(BookingErrorCodes.INVALID_BOOKING_ID, 'Бронироавние не существует');
+
+      booking = dbBooking;
+    }
+
+    if(booking === undefined) {
+      const dbBooking = await prisma.booking.findFirst({
+        where: {
+          status: 'PAID',
+          bookingTickets: {
+            every: {
+              ticket: {
+                id: ticket.id,
+                status: 'SOLD',
+              },
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        }
+      });
+      if(!dbBooking) throw new BookingError(BookingErrorCodes.INVALID_BOOKING_ID, 'Логическая ошибка: статус билета не соответствует стаусу бронирования');
+
+      booking = dbBooking;
+    }
+
+    const eventId = ticket.ticketType!.event.id;
+    const purchaseDate = await prisma.actionLog.findFirst({
+      where: {
+        action: ActionLogAction.BOOKING_PAID,
+        targetType: 'booking',
+        targetId: booking.id,
+        metadata: {
+          path: ['events'],
+          array_contains: [[eventId]],
+        }
+      },
+      select: {
+        createdAt: true,
+      },
+    });
+
+    return purchaseDate?.createdAt ?? null;
   }
 }
