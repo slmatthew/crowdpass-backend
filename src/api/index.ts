@@ -27,8 +27,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 import vkAuthRoutes from './routes/auth/vk';
 import telegramAuthRoutes from './routes/auth/telegram';
 
-import mainInternalRoutes from './routes/internal/main';
-
 import { adminRoutes } from './routes/admin';
 import { userRoutes } from './routes/user';
 
@@ -37,8 +35,6 @@ app.use('/api/auth/telegram', telegramAuthRoutes);
 
 app.use('/api', adminRoutes);
 app.use('/api', userRoutes);
-
-app.use('/api/internal', mainInternalRoutes);
 
 export function startApiServer() {
   app.listen(PORT, () => {

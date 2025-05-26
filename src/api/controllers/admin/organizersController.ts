@@ -30,7 +30,7 @@ export async function getAvailableOrganizers(req: Request, res: Response) {
   if(req.admin.role === 'MANAGER') {
     const user = await UserService.findUserById(req.user.id);
 
-    if(!req.admin.organizerId) return res.status(400).json({ message: "Вы не прикреплены к организатору, обратитесь к вышестоящим админам" });
+    if(!user || !user.admin || !user.admin.organizerId) return res.status(400).json({ message: "Вы не прикреплены к организатору, обратитесь к вышестоящим админам" });
 
     const organizers = await OrganizerService.getAdminAvailableOrganizers(req.admin.organizerId);
     return res.json(organizers);

@@ -2,6 +2,7 @@ import { formatUser } from "@/api/utils/formatters";
 import { privileges } from "@/api/utils/privileges";
 import { UserService } from "@/services/userService";
 import { Role, User } from "@prisma/client";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
 import { Request, Response } from "express";
 import { z } from "zod";
 
@@ -16,22 +17,10 @@ export async function getUsers(req: Request, res: Response) {
     pageSize: Number(pageSize),
   });
 
-  result.items = result.items.map(u => {
-    if(u.phone) {
-      const phoneLength = u.phone.length;
-
-      let phone = '';
-      phone += u.phone.slice(0, 1);
-      phone += '*'.repeat(phoneLength - 5);
-      phone += u.phone.slice(phoneLength - 4);
-
-      u.phone = phone;
-    }
-
-    return u;
+  res.json({
+    items: result.items.map(formatUser.admin),
+    total: result.total,
   });
-
-  res.json(result);
 }
 
 export async function promoteToAdmin(req: Request, res: Response) {
@@ -40,8 +29,18 @@ export async function promoteToAdmin(req: Request, res: Response) {
   const userId = Number(req.params.id);
   const { role, organizerId } = req.body;
 
-  const admin = await UserService.promoteToAdmin(userId, role, organizerId);
-  res.status(201).json(admin);
+  if(!role || (role === 'MANAGER' && !organizerId)) return res.status(400).json({ message: 'Некорректный формат запроса' });
+
+  try {
+    const admin = await UserService.promoteToAdmin(userId, role, organizerId);
+    res.status(201).json(admin);
+  } catch(err: any) {
+    if(err instanceof PrismaClientKnownRequestError) {
+      if(err.code === 'P2002') return res.status(409).json({ message: 'Пользователь уже является администратором' });
+    }
+
+    res.status(500).json({ message: 'Произошла ошибка' });
+  }
 }
 
 export async function demoteAdmin(req: Request, res: Response) {
@@ -63,7 +62,7 @@ export async function getUserById(req: Request, res: Response) {
 
   if (!user) return res.status(404).json({ message: "Пользователь не найден" });
 
-  res.json(formatUser(user));
+  res.json(formatUser.admin(user));
 }
 
 export async function changePlatformId(req: Request, res: Response) {
@@ -79,7 +78,7 @@ export async function changePlatformId(req: Request, res: Response) {
   try {
     const platform = targetPlatform === 'vk' ? 'VK' : 'TELEGRAM';
     const user = await UserService.forceUpdatePlatformId(Number(userId), platform, targetId);
-    res.json(formatUser(user));
+    res.json(formatUser.safe(user));
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Ошибка при обновлении ID платформы" });
@@ -110,7 +109,7 @@ export async function resetPlatformId(req: Request, res: Response) {
     }
 
     const uUser = await UserService.forceUpdatePlatformId(userId, platform, null);
-    res.json(formatUser(uUser));
+    res.json(formatUser.safe(uUser));
   } catch(err) {
     console.error(err)
     res.status(500).json({ message: 'Произошла ошибка' });

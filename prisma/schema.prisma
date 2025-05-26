@@ -14,14 +14,17 @@ datasource db {
 }
 
 model User {
-  id                 Int      @id @default(autoincrement())
-  telegramId         String?  @unique
-  vkId               String?  @unique
-  email              String?  @unique
+  id                 Int       @id @default(autoincrement())
+  telegramId         String?   @unique
+  vkId               String?   @unique
+  email              String?   @unique
   firstName          String
   lastName           String
   phone              String?
-  createdAt          DateTime @default(now())
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  isBanned           Boolean   @default(false)
+  bannedAt           DateTime?
 
   bookings           Booking[]
   admin              Admin?
@@ -54,7 +57,8 @@ enum Role {
 
 model Organizer {
   id          Int      @id @default(autoincrement())
-  name        String
+  slug        String?  @db.VarChar(255)
+  name        String   @unique
   description String?
   contacts    String?
 
@@ -62,19 +66,27 @@ model Organizer {
   admins      Admin[]
 
   @@map("organizers")
+  @@index([slug], map: "organizers_slug_unique_idx")
 }
 
 model Event {
-  id            Int        @id @default(autoincrement())
-  name          String
-  description   String
-  startDate     DateTime
-  endDate       DateTime
-  location      String
-  posterUrl     String?
-  organizerId   Int
-  categoryId    Int
-  subcategoryId Int
+  id              Int        @id @default(autoincrement())
+  slug            String?    @db.VarChar(255)
+  name            String
+  description     String
+  startDate       DateTime
+  endDate         DateTime
+  location        String
+  posterUrl       String?
+  organizerId     Int
+  categoryId      Int
+  subcategoryId   Int
+  isPublished     Boolean @default(false)
+  isSalesEnabled  Boolean @default(false)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  isDeleted       Boolean    @default(false)
+  deletedAt       DateTime?
 
   organizer     Organizer @relation(fields: [organizerId], references: [id])
   category      Category  @relation(fields: [categoryId], references: [id])
@@ -82,6 +94,7 @@ model Event {
   ticketTypes   TicketType[]
 
   @@map("events")
+  @@index([slug], map: "events_slug_unique_idx")
 }
 
 model Category {
@@ -110,26 +123,33 @@ model Subcategory {
 }
 
 model TicketType {
-  id        Int      @id @default(autoincrement())
-  eventId   Int
-  name      String
-  price     Decimal
-  quantity  Int
+  id              Int      @id @default(autoincrement())
+  eventId         Int
+  slug            String?  @db.VarChar(255)
+  name            String
+  price           Decimal
+  quantity        Int
+  isSalesEnabled  Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  isDeleted       Boolean  @default(false)
 
   event     Event    @relation(fields: [eventId], references: [id])
   tickets   Ticket[]
 
+  @@unique([eventId, name])
+  @@index([slug], map: "ticket_types_slug_unique_idx")
   @@map("ticket_types")
 }
 
 model Ticket {
-  id             Int      @id @default(autoincrement())
+  id             Int          @id @default(autoincrement())
   ticketTypeId   Int
-  qrCodeUrl      String?
   qrCodeSecret   String?
   ownerFirstName String?
   ownerLastName  String?
   status         TicketStatus @default(AVAILABLE)
+  updatedAt      DateTime     @updatedAt
 
   ticketType     TicketType @relation(fields: [ticketTypeId], references: [id])
   bookingTickets BookingTicket[]
@@ -145,10 +165,11 @@ enum TicketStatus {
 }
 
 model Booking {
-  id         Int      @id @default(autoincrement())
+  id         Int            @id @default(autoincrement())
   userId     Int
-  createdAt  DateTime @default(now())
   status     BookingStatus
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
 
   user       User     @relation(fields: [userId], references: [id])
   bookingTickets BookingTicket[]
@@ -195,6 +216,7 @@ model AccountLinkRequest {
   platform   Platform
   confirmed  Boolean   @default(false)
   createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
 
   source     User      @relation("SourceRequests", fields: [sourceId], references: [id], onDelete: Cascade)
   target     User?     @relation("TargetRequests", fields: [targetId], references: [id], onDelete: Cascade)
@@ -210,6 +232,8 @@ enum Platform {
 model Session {
   id           Int      @id @default(autoincrement())
   userId       Int
+  userAgent    String?
+  userIp       String?
   refreshToken String   @unique
   createdAt    DateTime @default(now())
   expiresAt    DateTime

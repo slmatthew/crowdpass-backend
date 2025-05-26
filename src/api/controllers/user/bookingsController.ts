@@ -6,14 +6,60 @@ import { BookingService } from "@/services/bookingService";
 import { BookingError } from "@/types/errors/BookingError";
 import { Request, Response } from "express";
 import { features } from "@/services/featuresService";
+import { XBooking, XBookingEvent, XMyBookingsResponse, XTicketType, XTicketTypeFormat } from "@/api/types/responses";
 
 export async function myBookings(req: Request, res: Response) {
   if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
   
   const bookings = await BookingService.getByUserId(req.user.id);
-  const displayBookings: UserBooking[] = bookings.map(convertBookingToUserBooking);
+  
+  const rBookings: XBooking[] = [];
+  const rTicketTypes = new Map<number, XTicketType>();
+  const rEvents = new Map<number, XBookingEvent>();
 
-  res.json(displayBookings);
+  bookings.forEach(b => {
+    const tickets = b.bookingTickets.map(bt => {
+      if(!rTicketTypes.has(bt.ticket.ticketType.id)) {
+        rTicketTypes.set(bt.ticket.ticketType.id, XTicketTypeFormat.default(bt.ticket.ticketType));
+      }
+      if(!rEvents.has(bt.ticket.ticketType.event.id)) {
+        rEvents.set(bt.ticket.ticketType.event.id, {
+          id: bt.ticket.ticketType.event.id,
+          slug: bt.ticket.ticketType.event.slug,
+          name: bt.ticket.ticketType.event.name,
+          description: bt.ticket.ticketType.event.description,
+          startDate: bt.ticket.ticketType.event.startDate,
+          endDate: bt.ticket.ticketType.event.endDate,
+          location: bt.ticket.ticketType.event.location,
+          posterUrl: bt.ticket.ticketType.event.posterUrl
+        });
+      }
+
+      return {
+        id: bt.ticket.id,
+        ticketTypeId: bt.ticket.ticketTypeId,
+        qrCodeSecret: bt.ticket.qrCodeSecret,
+        ownerFirstName: bt.ticket.ownerFirstName,
+        ownerLastName: bt.ticket.ownerLastName,
+        status: bt.ticket.status,
+      };
+    });
+
+    rBookings.push({
+      id: b.id,
+      createdAt: b.createdAt,
+      status: b.status,
+      tickets,
+    });
+  });
+
+  const result: XMyBookingsResponse = {
+    bookings: rBookings,
+    ticketTypes: Array.from(rTicketTypes.values()),
+    events: Array.from(rEvents.values()),
+  };
+
+  res.json(result);
 }
 
 export async function getTelegramInvoiceLink(req: Request, res: Response) {

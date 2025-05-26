@@ -78,7 +78,7 @@ export class TicketTypeService {
       },
     });
   
-    if (!ticketType) throw new Error("Тип билетов не найден");
+    if(!ticketType) throw new TicketTypeError(TicketTypeErrorCodes.TICKET_TYPE_NOT_FOUND, "Тип билетов не найден");
   
     const soldTickets = ticketType.tickets.filter(t => t.status === "SOLD");
     const reservedTickets = ticketType.tickets.filter(t => t.status === "RESERVED");

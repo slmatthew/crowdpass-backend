@@ -1,9 +1,8 @@
-import { Admin, Platform, Role, User } from "@prisma/client";
+import { Platform, Role, User } from "@prisma/client";
 import { prisma } from "../db/prisma";
 import { randomUUID } from "crypto";
 import { UserError, UserErrorCodes } from "@/types/errors/UserError";
-
-type UserAdmin = User & { admin?: Admin };
+import { userAdmin, UserAdmin } from "@/db/types";
 
 interface UserUpdateData {
   firstName: string;
@@ -27,22 +26,22 @@ export class UserService {
           { vkId: data.vkId ?? undefined },
         ],
       },
-      include: {
-        admin: true,
-      },
+      ...userAdmin,
     });
   
     if(existing) return existing as UserAdmin;
-  
-    return prisma.user.create({ data });
+
+    const created = await prisma.user.create({ data });
+    return {
+      ...created,
+      admin: null,
+    };
   }
 
-  static async findUserById(id: number) {
+  static async findUserById(id: number): Promise<UserAdmin | null> {
     return prisma.user.findUnique({
       where: { id },
-      include: {
-        admin: true,
-      },
+      ...userAdmin,
     });
   }
 

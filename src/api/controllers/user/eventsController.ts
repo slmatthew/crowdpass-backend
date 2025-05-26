@@ -1,25 +1,21 @@
+import {
+  XOrganizerShort,
+  XCategory, XSubcategory,
+  XCompactListResult, XDetailsResult, XEvent, XEventConvert
+} from "@/api/types/responses";
 import { EventService } from "@/services/eventService";
-import { Event } from "@prisma/client";
 import { Request, Response } from "express";
-
-type IdNamePair = { id: number, name: string };
-type CompactEvent = Omit<Event, 'endDate' | 'organizer' | 'category' | 'subcategory' | 'ticketTypes'> & {
-  prices: {
-    min: number;
-    max: number;
-  };
-};
 
 export async function compactList(req: Request, res: Response) {
   if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
 
   const { skip, take, categoryId, subcategoryId, search } = req.query;
 
-  const allEvents = await EventService.searchEvents(
+  const allEvents = (await EventService.searchEvents(
     categoryId ? Number(categoryId) : undefined,
     subcategoryId ? Number(subcategoryId) : undefined,
     search ? search.toString() : undefined
-  );
+  )).filter(e => !e.isDeleted && e.isPublished);
   
   const eventsList = ((): typeof allEvents => {
     let nSkip = Number(skip) ?? null;
@@ -45,39 +41,34 @@ export async function compactList(req: Request, res: Response) {
     return allEvents;
   })();
 
-  const events: CompactEvent[] = [];
-  const organizers = new Map<number, IdNamePair>();
-  const categories = new Map<number, IdNamePair>();
-  const subcategories = new Map<number, IdNamePair & { categoryId: number }>();
+  const events: XEvent[] = [];
+  const organizers = new Map<number, XOrganizerShort>();
+  const categories = new Map<number, Omit<XCategory, 'subcategories'>>();
+  const subcategories = new Map<number, Omit<XSubcategory, 'category'>>();
 
   eventsList.forEach(event => {
-    organizers.set(event.organizer.id, { id: event.organizer.id, name: event.organizer.name });
+    organizers.set(event.organizer.id, { id: event.organizer.id, name: event.organizer.name, slug: event.organizer.slug });
     categories.set(event.category.id, { id: event.category.id, name: event.category.name });
     subcategories.set(event.subcategory.id, { id: event.subcategory.id, name: event.subcategory.name, categoryId: event.subcategory.categoryId });
 
     const prices = event.ticketTypes.map(t => Number(t.price));
-    const compactEvent = {
-      ...event,
-      organizer: undefined,
-      category: undefined,
-      subcategory: undefined,
-      ticketTypes: undefined,
-      prices: {
-        min: Math.min(...prices) || 0,
-        max: Math.max(...prices) || 0,
-      },
-    } as CompactEvent;
+    const compactEvent = XEventConvert.fromShared(event, {
+      min: Math.min(...prices) || 0,
+      max: Math.max(...prices) || 0,
+    });
 
     events.push(compactEvent);
   });
 
-  res.json({
+  const result: XCompactListResult = {
     events,
     totalCount: allEvents.length,
     organizers: Array.from(organizers.values()),
     categories: Array.from(categories.values()),
     subcategories: Array.from(subcategories.values()),
-  });
+  };
+
+  res.json(result);
 }
 
 export async function details(req: Request, res: Response) {
@@ -86,17 +77,7 @@ export async function details(req: Request, res: Response) {
 
   if(!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
 
-  (event as any).ticketTypes = event.ticketTypes.map(tt => ({
-    id: tt.id,
-    name: tt.name,
-    price: tt.price,
-    available: tt.stats.availableTickets
-  }));
+  const result: XDetailsResult = XEventConvert.fromSharedWithStats(event);
 
-  (event as any).organizerId = undefined;
-  (event as any).categoryId = undefined;
-  (event as any).subcategoryId = undefined;
-  (event as any).stats = undefined;
-
-  res.json(event);
+  res.json(result);
 }

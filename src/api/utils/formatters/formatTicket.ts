@@ -12,7 +12,6 @@ export async function formatTicket(ticket: Ticket & {
     status: ticket.status,
     ownerFirstName: ticket.ownerFirstName,
     ownerLastName: ticket.ownerLastName,
-    qrCodeUrl: ticket.qrCodeUrl,
     qrCodeSecret: ticket.qrCodeSecret,
     ticketTypeId: ticket.ticketTypeId,
   };

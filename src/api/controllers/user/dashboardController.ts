@@ -28,13 +28,13 @@ export async function me(req: Request, res: Response) {
     phone,
   };
 
-  return res.json({ user });
+  return res.json({ user: formatUser.safe(req.user) });
 }
 
 export async function dashboard(req: Request, res: Response) {
   if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
 
-  let events: Event[] = await EventService.getPopularEventsSorted();
+  let events: Array<Partial<Event>> = await EventService.getPopularEventsSorted();
   if(events.length === 0) {
     events = await EventService.getAllEvents();
   }
@@ -84,5 +84,6 @@ export async function getFeatures(req: Request, res: Response) {
   res.json({
     "tp": isTelegramPaymentsWorking,
     "stable": process.env.NODE_ENV === 'production',
+    "ap_sdt": BookingService.SHOULD_DELETE_TICKETS,
   });
 }

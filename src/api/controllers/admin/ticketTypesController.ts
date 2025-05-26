@@ -12,6 +12,8 @@ export async function getTicketTypesByEvent(req: Request, res: Response) {
 
 export async function createTicketType(req: Request, res: Response) {
   const { eventId, name, price, quantity } = req.body;
+  if(!eventId || !name || !price || !quantity) return res.status(400).json({ message: 'Неверный формат запроса' });
+
   if(!(await privileges.ticketTypes.manage(req.user!, undefined, eventId))) return res.status(403).json({ message: "Нет доступа" });
 
   try {
@@ -23,7 +25,7 @@ export async function createTicketType(req: Request, res: Response) {
     }
 
     console.error(err);
-    res.status(400).json({ message: 'Произошла ошибка' });
+    res.status(500).json({ message: 'Произошла ошибка' });
   }
 }
 
@@ -59,6 +61,7 @@ export async function deleteTicketType(req: Request, res: Response) {
     if(error instanceof TicketTypeError) {
       if(error.code === TicketTypeErrorCodes.ACCESS_DENIED) return res.status(403).json({ message: "Нет доступа" });
       if(error.code === TicketTypeErrorCodes.NEED_CONFIRM) return res.status(409).json({ message: error.message });
+      if(error.code === TicketTypeErrorCodes.TICKET_TYPE_NOT_FOUND) return res.status(404).json({ message: 'Тип билета не найден' });
 
       return res.status(400).json({ message: error.message });
     }

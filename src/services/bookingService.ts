@@ -5,6 +5,7 @@ import { TicketService } from "./ticketService";
 import { EventService } from "./eventService";
 import { ActionLogAction } from "@/constants/appConstants";
 import { logAction } from "@/utils/logAction";
+import { sharedBooking, SharedBooking } from "@/db/types";
 
 interface BookingQueryParams {
 	status?: BookingStatus;
@@ -18,7 +19,7 @@ type BookingRequestTicket = { ticketTypeId: number; quantity: number };
 
 export class BookingService {
 	/**
-	 * Удалять ли билеты при отмене бронирования
+	 * Удалять ли bookingTickets при отмене бронирования
 	 * Если true, то билеты будут удалены из базы данных
 	 * Если false, то билеты будут возвращены в статус AVAILABLE
 	 */
@@ -30,7 +31,10 @@ export class BookingService {
 		eventId,
 		page = 1,
 		limit = 20,
-	}: BookingQueryParams) {
+	}: BookingQueryParams): Promise<{
+		bookings: SharedBooking[];
+		total: number;
+	}> {
 		const where: any = {};
 		if (status) where.status = status;
 		if (userId) where.userId = userId;
@@ -49,25 +53,10 @@ export class BookingService {
 		const [bookings, total] = await Promise.all([
 			prisma.booking.findMany({
 				where,
-				include: {
-					user: true,
-					bookingTickets: {
-						include: {
-							ticket: {
-								include: {
-									ticketType: {
-										include: {
-											event: true,
-										},
-									},
-								},
-							},
-						},
-					},
-				},
 				skip: (page - 1) * limit,
 				take: limit,
 				orderBy: { createdAt: "desc" },
+				...sharedBooking,
 			}),
 			prisma.booking.count({ where }),
 		]);
@@ -75,23 +64,10 @@ export class BookingService {
 		return { bookings, total };
 	}
 
-	static async getById(id: number) {
+	static async getById(id: number): Promise<SharedBooking | null> {
 		return prisma.booking.findUnique({
 			where: { id },
-			include: {
-				user: true,
-				bookingTickets: {
-					include: {
-						ticket: {
-							include: {
-								ticketType: {
-									include: { event: true },
-								},
-							},
-						},
-					},
-				},
-			},
+			...sharedBooking,
 		});
 	}
 
@@ -99,27 +75,18 @@ export class BookingService {
 	 * Получить все бронирования пользователя
 	 * Используется в команде mybookings в ботах
 	 */
-	static async getByUserId(userId: number, status: BookingStatus = BookingStatus.ACTIVE) {
+	static async getByUserId(
+		userId: number,
+		status: BookingStatus = BookingStatus.ACTIVE
+	): Promise<SharedBooking[]> {
 		return prisma.booking.findMany({
 			where: { userId, status },
-			include: {
-				bookingTickets: {
-					include: {
-						ticket: {
-							include: {
-								ticketType: {
-									include: { event: true },
-								},
-							},
-						},
-					},
-				},
-			},
 			orderBy: { createdAt: "desc" },
+			...sharedBooking,
 		});
 	}
 
-	static async canUserManageBooking(userId: number, bookingId: number) {
+	static async canUserManageBooking(userId: number, bookingId: number): Promise<boolean> {
 		const booking = await prisma.booking.findUnique({
 			where: { id: bookingId }
 		});
@@ -144,7 +111,7 @@ export class BookingService {
 		return EventService.canUserManageEvent(userId, bookingTicket.ticket.ticketType.eventId);
 	}
 
-	static async updateStatus(id: number, status: BookingStatus, allowStatusChange: boolean = false) {
+	static async updateStatus(id: number, status: BookingStatus, allowStatusChange: boolean = false): Promise<Boolean> {
 		const booking = await BookingService.getById(id);
 		if(!booking) throw new BookingError(BookingErrorCodes.INVALID_BOOKING_ID, "Бронирование не найдено");
 
@@ -196,12 +163,24 @@ export class BookingService {
 							throw new BookingError(BookingErrorCodes.TOO_MUCH_TICKETS, "Недостаточно доступных билетов", availableTickets.length);
 						}
 
+						const newTicketIds = (() => {
+							const oldTicketIds = tickets.filter((t) => t.ticket.status === TicketStatus.AVAILABLE).map((t) => t.ticketId);
+							const availableTicketIds = availableTickets
+								.filter((t) => !oldTicketIds.includes(t.id))
+								.slice(0, tickets.length - oldTicketIds.length)
+								.map((t) => t.id);
+
+							return [...oldTicketIds, ...availableTicketIds];
+						})();
+
+						if(newTicketIds.length !== tickets.length) throw new Error('wrong');
+
 						await prisma.bookingTicket.deleteMany({
 							where: { bookingId: booking.id }
 						});
 
 						await prisma.bookingTicket.createMany({
-							data: availableTickets.map(t => {
+							data: availableTickets.slice(0, tickets.length).map(t => {
 								return { bookingId: booking.id, ticketId: t.id };
 							})
 						});
@@ -241,7 +220,7 @@ export class BookingService {
 	/**
 	 * Бронирование билетов
 	 */
-	static async makeBooking(userId: number, tickets: BookingRequestTicket[]) {
+	static async makeBooking(userId: number, tickets: BookingRequestTicket[]): Promise<Booking> {
 		if(!Array.isArray(tickets) || tickets.length === 0) {
 			throw new BookingError(BookingErrorCodes.INVALID_REQUEST, "Не указаны позиции для бронирования");
 		}
@@ -312,7 +291,7 @@ export class BookingService {
 
 					await tx.ticket.update({
 						where: { id: ticket.id },
-						data: { status: TicketStatus.RESERVED, qrCodeUrl: TicketService.generateSecret() },
+						data: { status: TicketStatus.RESERVED, qrCodeSecret: TicketService.generateSecret() },
 					});
 				}
 			}
@@ -326,7 +305,7 @@ export class BookingService {
 	/**
 	 * Оплатить бронь
 	 */
-	static async payBooking(bookingId: number, byPassStatusCheck: boolean = false) {
+	static async payBooking(bookingId: number, byPassStatusCheck: boolean = false): Promise<Boolean> {
 		if(!bookingId) throw new BookingError(BookingErrorCodes.INVALID_BOOKING_ID, "ID бронирования не указан");
 
 		const booking = await prisma.booking.findUnique({
@@ -354,7 +333,11 @@ export class BookingService {
 	/**
 	 * Отмена бронирования
 	 */
-	static async cancelBooking(bookingId: number, byPassStatusCheck: boolean = false, deleteTickets: boolean = BookingService.SHOULD_DELETE_TICKETS) {
+	static async cancelBooking(
+		bookingId: number,
+		byPassStatusCheck: boolean = false,
+		deleteTickets: boolean = BookingService.SHOULD_DELETE_TICKETS
+	): Promise<Boolean> {
 		if(!bookingId) throw new BookingError(BookingErrorCodes.INVALID_BOOKING_ID, "ID бронирования не указан");
 
 		const booking = await prisma.booking.findUnique({
@@ -395,7 +378,7 @@ export class BookingService {
 			forced: boolean;
 			amount?: number;
 		}
-	) {
+	): Promise<void> {
 		const booking = await BookingService.getById(bookingId);
 		if(!booking) return;
 

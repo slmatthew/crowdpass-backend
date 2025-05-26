@@ -1,37 +1,23 @@
 import { Organizer } from "@prisma/client";
 import { prisma } from "../db/prisma";
+import { SharedOrganizer, sharedOrganizer } from "@/db/types/organizer";
 
 export class OrganizerService {
-  static async getAll() {
+  static async getAll(): Promise<SharedOrganizer[]> {
     return prisma.organizer.findMany({
-      include: {
-        admins: {
-          include: { user: true },
-        },
-        events: {
-          where: { endDate: { gte: new Date() } },
-          take: 3,
-        },
-      },
       orderBy: { id: "asc" },
+      ...sharedOrganizer,
     });
   }
 
-  static async getById(id: number) {
+  static async getById(id: number): Promise<SharedOrganizer | null> {
     return prisma.organizer.findUnique({
       where: { id },
-      include: {
-        admins: { include: { user: true } },
-        events: {
-          where: { endDate: { gte: new Date() } },
-          include: { category: true, subcategory: true },
-          take: 3,
-        },
-      },
+      ...sharedOrganizer,
     });
   }
 
-  static async getByManagerId(userId: number) {
+  static async getByManagerId(userId: number): Promise<SharedOrganizer| null> {
     const admin = await prisma.admin.findUnique({ where: { userId } });
     if (!admin?.organizerId) return null;
 

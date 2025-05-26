@@ -2,10 +2,11 @@ import { Request, Response } from "express";
 import { EventService } from "@/services/eventService";
 import { z } from "zod";
 import { logAction } from "../../../utils/logAction";
-import { extractQueryOptions, formatEvent } from "../../utils/formatters";
+import { extractQueryOptions } from "../../utils/formatters";
 import { getPrismaIncludeOptions } from "../../utils/formatters/formatEvent";
 import { privileges } from "@/api/utils/privileges";
 import { ActionLogAction } from "@/constants/appConstants";
+import { SharedEventWithStats } from "@/db/types";
 
 export async function getAllEvents(req: Request, res: Response) {
   const { extended, fields } = extractQueryOptions(req);
@@ -37,6 +38,10 @@ export async function getEventById(req: Request, res: Response) {
   res.json(event);
 }
 
+type EventOverview = SharedEventWithStats & {
+  revenue: number;
+};
+
 export async function getEventOverview(req: Request, res: Response) {
   const id = Number(req.params.id);
   if (!(await privileges.events.update(req.user!, id))) {
@@ -47,7 +52,7 @@ export async function getEventOverview(req: Request, res: Response) {
   if (!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
 
   const revenue = await EventService.getEventTotalRevenue(event.id);
-  (event as any).revenue = revenue;
+  (event as EventOverview).revenue = revenue;
 
   res.json(event);
 }
@@ -71,6 +76,8 @@ const updateEventSchema = z.object({
   organizerId: z.coerce.number(),
   categoryId: z.coerce.number(),
   subcategoryId: z.coerce.number(),
+  isPublished: z.coerce.boolean(),
+  isSalesEnabled: z.coerce.boolean(),
 });
 
 export async function updateEventById(req: Request, res: Response) {

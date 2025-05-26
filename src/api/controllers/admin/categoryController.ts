@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { CategoryService } from "@/services/categoryService";
 import { privileges } from "@/api/utils/privileges";
+import { PrismaClientKnownRequestError } from "@prisma/client/runtime/library";
+import { CategoryError } from "../../../types/errors/CategoryError";
 
 // === CATEGORY ===
 
@@ -21,8 +23,20 @@ export async function createCategory(req: Request, res: Response) {
   if(!privileges.categories.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
 
   const { name } = req.body;
-  const category = await CategoryService.createCategory(name);
-  res.status(201).json(category);
+  if(!name) return res.status(400).json({ message: 'Неверный формат запроса' });
+
+  try {
+    const category = await CategoryService.createCategory(name);
+    res.status(201).json(category);
+  } catch(err: any) {
+    if(err instanceof PrismaClientKnownRequestError) {
+      if(err.code === 'P2002') {
+        return res.status(400).json({ message: 'Имя уже занято'});
+      }
+    }
+
+    res.status(500).json({ message: 'Произошла ошибка' });
+  }
 }
 
 export async function updateCategory(req: Request, res: Response) {
@@ -30,16 +44,37 @@ export async function updateCategory(req: Request, res: Response) {
 
   const id = Number(req.params.id);
   const { name } = req.body;
-  const updated = await CategoryService.updateCategory(id, name);
-  res.json(updated);
+  if(!name) return res.status(400).json({ message: 'Неверный формат запроса' });
+
+  try {
+    const updated = await CategoryService.updateCategory(id, name);
+    res.json(updated);
+  } catch(err: any) {
+    if(err instanceof PrismaClientKnownRequestError) {
+      if(err.code === 'P2002') {
+        return res.status(400).json({ message: 'Имя уже занято'});
+      }
+    }
+
+    res.status(500).json({ message: 'Произошла ошибка' });
+  }
 }
 
 export async function deleteCategory(req: Request, res: Response) {
   if(!privileges.categories.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
 
   const id = Number(req.params.id);
-  const deleted = await CategoryService.deleteCategory(id);
-  res.json(deleted);
+
+  try {
+    const deleted = await CategoryService.deleteCategory(id);
+    res.json(deleted);
+  } catch(err: any) {
+    if(err instanceof CategoryError) {
+      return res.status(400).json({ message: err.message });
+    }
+
+    return res.status(500).json({ message: 'Произошла ошибка' });
+  }
 }
 
 // === SUBCATEGORY ===
@@ -71,8 +106,20 @@ export async function createSubcategory(req: Request, res: Response) {
   if(!privileges.categories.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
 
   const { name, categoryId } = req.body;
-  const subcategory = await CategoryService.createSubcategory(name, categoryId);
-  res.status(201).json(subcategory);
+  if(!name || !categoryId) return res.status(400).json({ message: 'Неверный формат запроса' });
+
+  try {
+    const subcategory = await CategoryService.createSubcategory(name, categoryId);
+    res.status(201).json(subcategory);
+  } catch(err: any) {
+    if(err instanceof PrismaClientKnownRequestError) {
+      if(err.code === 'P2002') {
+        return res.status(400).json({ message: 'Имя уже занято'});
+      }
+    }
+
+    res.status(500).json({ message: 'Произошла ошибка' });
+  }
 }
 
 export async function updateSubcategory(req: Request, res: Response) {
@@ -80,14 +127,35 @@ export async function updateSubcategory(req: Request, res: Response) {
 
   const id = Number(req.params.id);
   const { name, categoryId } = req.body;
-  const updated = await CategoryService.updateSubcategory(id, name, categoryId);
-  res.json(updated);
+  if(!name && !categoryId) return res.status(400).json({ message: 'Неверный формат запроса' });
+
+  try {
+    const updated = await CategoryService.updateSubcategory(id, name, categoryId);
+    res.json(updated);
+  } catch(err: any) {
+    if(err instanceof PrismaClientKnownRequestError) {
+      if(err.code === 'P2002') {
+        return res.status(400).json({ message: 'Имя уже занято'});
+      }
+    }
+
+    res.status(500).json({ message: 'Произошла ошибка' });
+  }
 }
 
 export async function deleteSubcategory(req: Request, res: Response) {
   if(!privileges.categories.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
 
   const id = Number(req.params.id);
-  const deleted = await CategoryService.deleteSubcategory(id);
-  res.json(deleted);
+  
+  try {
+    const deleted = await CategoryService.deleteSubcategory(id);
+    res.json(deleted);
+  } catch(err: any) {
+    if(err instanceof CategoryError) {
+      return res.status(400).json({ message: err.message });
+    }
+
+    return res.status(500).json({ message: 'Произошла ошибка' });
+  }
 }

@@ -2,6 +2,7 @@ import { EventError, EventErrorCodes } from '@/types/errors/EventError';
 import { prisma } from '../db/prisma';
 import { Admin, Event, Role } from '@prisma/client';
 import { ActionLogAction } from '@/constants/appConstants';
+import { SharedEvent, sharedEvent, SharedEventPartial, SharedEventWithStats } from '@/db/types/event';
 
 interface EventExtendedOptions {
   organizer?: boolean,
@@ -19,10 +20,12 @@ interface UpdateEventData {
   organizerId: number;
   categoryId: number;
   subcategoryId: number;
+  isPublished: boolean;
+  isSalesEnabled: boolean;
 }
 
 export class EventService {
-  static LcanUserManageEvent(admin?: Admin, event?: Event) {
+  static LcanUserManageEvent(admin?: Admin, event?: Event): boolean {
     if(!event) throw new EventError(EventErrorCodes.EVENT_NOT_FOUND, 'Мероприятие не найдено');
 
     if(!admin) return false;
@@ -36,7 +39,7 @@ export class EventService {
     upcoming: boolean = true,
     include: EventExtendedOptions = {},
     orderBy: { startDate?: 'asc' | 'desc' } = { startDate: 'asc' },
-  ) {
+  ): Promise<SharedEventPartial[]> {
     const where = upcoming ? { endDate: { gte: new Date() } } : {};
 
     return prisma.event.findMany({
@@ -46,7 +49,7 @@ export class EventService {
     });
   }
 
-  static async searchEvents(categoryId?: number, subcategoryId?: number, search?: string) {
+  static async searchEvents(categoryId?: number, subcategoryId?: number, search?: string): Promise<SharedEvent[]> {
     return prisma.event.findMany({
       where: {
         startDate: {
@@ -56,19 +59,14 @@ export class EventService {
         categoryId,
         subcategoryId,
       },
-      include: {
-        organizer: true,
-        category: true,
-        subcategory: true,
-        ticketTypes: true,
-      },
       orderBy: {
         startDate: 'asc'
       },
+      ...sharedEvent,
     });
   }
 
-  static async getEventsByCategoryId(categoryId: number) {
+  static async getEventsByCategoryId(categoryId: number): Promise<Event[]> {
     return prisma.event.findMany({
       where: {
         categoryId,
@@ -80,7 +78,7 @@ export class EventService {
     });
   }
 
-  static async getEventsBySubcategoryId(subcategoryId: number) {
+  static async getEventsBySubcategoryId(subcategoryId: number): Promise<Event[]> {
     return prisma.event.findMany({
       where: {
         subcategoryId,
@@ -92,25 +90,33 @@ export class EventService {
     });
   }
 
-  static async getEventById(id: number, include: EventExtendedOptions = {}) {
+  static async getEventById(id: number, include: EventExtendedOptions = {}): Promise<Event | null> {
     return prisma.event.findUnique({
       where: { id },
       include,
     });
   }
 
-  static async getEventOverview(id: number) {
-    const event = await prisma.event.findUnique({
-      where: { id },
-      include: {
-        organizer: true,
-        category: true,
-        subcategory: true,
-        ticketTypes: true,
-      },
+  static async getEventBySlug(slug: string, include: EventExtendedOptions = {}): Promise<Event | null> {
+    return prisma.event.findFirst({
+      where: { slug },
+      include,
     });
+  }
+
+  static async getEventOverview(id?: number, slug?: string): Promise<SharedEventWithStats | null> {
+    if(!id && !slug) throw new EventError(EventErrorCodes.EVENT_NOT_FOUND, 'You should provide id or slug');
+
+    const event = id ?
+      await prisma.event.findUnique({
+        where: { id },
+        ...sharedEvent,
+      }) : await prisma.event.findFirst({
+        where: { slug },
+        ...sharedEvent,
+      });
   
-    if (!event) return null;
+    if(!event) return null;
   
     const ticketStats = await prisma.ticket.groupBy({
       by: ['ticketTypeId', 'status'],
@@ -248,6 +254,8 @@ export class EventService {
         organizerId: data.organizerId,
         categoryId: data.categoryId,
         subcategoryId: data.subcategoryId,
+        isPublished: data.isPublished,
+        isSalesEnabled: data.isSalesEnabled,
       },
     });
   };
@@ -263,6 +271,8 @@ export class EventService {
         organizerId: data.organizerId,
         categoryId: data.categoryId,
         subcategoryId: data.subcategoryId,
+        isPublished: false,
+        isSalesEnabled: false,
       },
     });
   };

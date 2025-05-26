@@ -1,3 +1,4 @@
+import { XEventConvert, XEventShort, XTicketShort, XTicketType, XTicketTypeFormat } from "@/api/types/responses";
 import { BookingService } from "@/services/bookingService";
 import { TicketService } from "@/services/ticketService";
 import { Booking, Ticket, TicketType, Event } from "@prisma/client";
@@ -11,15 +12,16 @@ export async function myTickets(req: Request, res: Response) {
 
   const bookings = await BookingService.getByUserId(req.user.id, 'PAID');
   
-  const dEvents = new Map<number, Event>();
+  const dEvents = new Map<number, XEventShort>();
   const dBookings = new Map<number, DisplayBooking>();
-  const dTicketTypes = new Map<number, DisplayTicketType>();
-  const dTickets: (Ticket & { bookingId: number; purchaseDate: Date | null; })[] = [];
+  const dTicketTypes = new Map<number, XTicketType>();
+  const dTickets: XTicketShort[] = [];
 
   for(const b of bookings) {
     dBookings.set(b.id, {
       id: b.id,
       createdAt: b.createdAt,
+      updatedAt: b.updatedAt,
       userId: b.userId,
       status: b.status,
     });
@@ -32,14 +34,19 @@ export async function myTickets(req: Request, res: Response) {
           continue;
         }
 
-        dEvents.set(event.id, event);
-        dTicketTypes.set(bt.ticket.ticketType.id, ticketType);
+        dEvents.set(event.id, XEventConvert.toShort(event));
+        dTicketTypes.set(bt.ticket.ticketType.id, XTicketTypeFormat.default(tTicketType));
 
         let purchaseDate = null;
         try { purchaseDate = await TicketService.getTicketPurchaseDate(ticket, b); } catch {}
 
         dTickets.push({
-          ...ticket,
+          id: ticket.id,
+          qrCodeSecret: ticket.qrCodeSecret,
+          ownerFirstName: ticket.ownerFirstName,
+          ownerLastName: ticket.ownerLastName,
+          status: ticket.status,
+          ticketTypeId: ticket.ticketTypeId,
           bookingId: b.id,
           purchaseDate,
         });
