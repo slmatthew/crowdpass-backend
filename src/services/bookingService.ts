@@ -312,7 +312,7 @@ export class BookingService {
 
 					await tx.ticket.update({
 						where: { id: ticket.id },
-						data: { status: TicketStatus.RESERVED, qrCodeUrl: TicketService.generateSecret() },
+						data: { status: TicketStatus.RESERVED, qrCodeSecret: TicketService.generateSecret() },
 					});
 				}
 			}

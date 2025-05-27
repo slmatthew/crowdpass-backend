@@ -57,7 +57,7 @@ export class TicketService {
       where: { id: ticketId },
       data: {
         status,
-        qrCodeSecret: ticket.qrCodeSecret ?? TicketService.generateSecret(),
+        qrCodeSecret: TicketService.generateSecret(),
       },
     });
   }

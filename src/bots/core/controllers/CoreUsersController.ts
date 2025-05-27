@@ -8,7 +8,6 @@ import { User } from "@prisma/client";
 
 export class CoreUsersController<C extends PlatformContext, P extends PlatformPayloads> extends CoreController<C, P> {
   async rootPurpose(user: User, code: string): Promise<ControllerResponse> {
-    console.log(isRootSetupActive())
     if(!isRootSetupActive()) return this.badResult('❌ Доступ запрещён');
     if(!attemptClaimRoot(code)) return this.badResult('Неверный код');
 

@@ -125,8 +125,7 @@ model TicketType {
 model Ticket {
   id             Int      @id @default(autoincrement())
   ticketTypeId   Int
-  qrCodeUrl      String?
-  qrCodeSecret   String?
+  qrCodeSecret   String   @unique @default(uuid())
   ownerFirstName String?
   ownerLastName  String?
   status         TicketStatus @default(AVAILABLE)
