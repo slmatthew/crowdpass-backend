@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authAdmin } from "@/api/middlewares/authAdmin";
+import { authAdmin } from "@/api/middlewares/auth";
 
 import eventsRoutes from '@api/routes/admin/events';
 import dashboardRoutes from '@api/routes/admin/dashboard';

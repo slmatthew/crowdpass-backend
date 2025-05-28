@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user.service";
 import { AdminDashboardService } from "@/services/adminDashboardService";
 import { TicketService } from "@/services/ticketService";
 import { privileges } from "@/api/utils/privileges";
@@ -23,7 +23,7 @@ export const dashboardController = {
       return res.status(401).json({ message: 'Не найден id пользователя' });
     }
 
-    const user = await UserService.findUserById(userId);
+    const user = await UserService.findById(userId);
 
     if (!user || !user.admin) {
       return res.status(403).json({ message: 'Доступ запрещен' });

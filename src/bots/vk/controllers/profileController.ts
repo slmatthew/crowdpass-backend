@@ -1,4 +1,4 @@
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user.service";
 import { UserError } from "@/types/errors/UserError";
 import { Platform } from "@prisma/client";
 import { KeyboardBuilder, MessageContext } from "vk-io";

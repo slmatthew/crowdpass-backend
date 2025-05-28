@@ -1,4 +1,4 @@
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user.service";
 
 let rootSetupCode: string | null = null;
 let rootSetupActive = false;

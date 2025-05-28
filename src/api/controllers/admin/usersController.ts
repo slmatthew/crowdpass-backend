@@ -1,6 +1,6 @@
 import { formatUser } from "@/api/utils/formatters";
 import { privileges } from "@/api/utils/privileges";
-import { UserService } from "@/services/userService";
+import { UserService, UserUpdateData } from "@/services/user.service";
 import { Role, User } from "@prisma/client";
 import { Request, Response } from "express";
 import { z } from "zod";
@@ -40,7 +40,7 @@ export async function promoteToAdmin(req: Request, res: Response) {
   const userId = Number(req.params.id);
   const { role, organizerId } = req.body;
 
-  const admin = await UserService.promoteToAdmin(userId, role, organizerId);
+  const admin = await UserService.promoteAdmin(userId, role, organizerId);
   res.status(201).json(admin);
 }
 
@@ -59,7 +59,7 @@ export async function getUserById(req: Request, res: Response) {
   const id = Number(req.params.id);
   //const { extended, fields } = req.query;
 
-  const user = await UserService.findUserById(id);
+  const user = await UserService.findById(id);
 
   if (!user) return res.status(404).json({ message: "Пользователь не найден" });
 
@@ -97,7 +97,7 @@ export async function resetPlatformId(req: Request, res: Response) {
   }
 
   try {
-    const user = await UserService.findUserById(userId);
+    const user = await UserService.findById(userId);
     if(!user) return res.status(404).json({ message: 'Пользователь не найден' });
 
     const platform = targetPlatform === 'vk' ? 'VK' : 'TELEGRAM';
@@ -136,13 +136,14 @@ export async function updateInfo(req: Request, res: Response) {
     const userId = Number(req.params.id);
     const validated = userUpdateInfoSchema.parse(req.body);
 
-    if(validated.removePhone) {
-      await UserService.setPhone({ id: userId } as unknown as User, null);
-    }
+    const user: UserUpdateData = {
+      firstName: validated.firstName,
+      lastName: validated.lastName ?? '',
+      email: validated.email,
+      phone: validated.removePhone ? null : undefined,
+    };
 
-    if(validated.removePhone !== undefined) delete validated.removePhone;
-
-    const updated = await UserService.update(userId, validated);
+    const updated = await UserService.update(userId, user);
 
     res.json({ ok: !!updated });
   } catch(err: any) {
@@ -153,5 +154,23 @@ export async function updateInfo(req: Request, res: Response) {
     }
 
     return res.status(500).json({ message: 'Произошла ошибка' });
+  }
+}
+
+export async function banUnban(req: Request, res: Response) {
+  if(!privileges.users.manage(req.user!)) return res.status(403).json({ message: "Нет доступа" });
+
+  try {
+    const userId = Number(req.params.id);
+
+    if(userId === req.user?.id) return res.status(400).json({ message: 'Вы не можете заблокировать сами себя' });
+
+    const user = await UserService.findById(userId);
+    if(!user) return res.status(404).json({ message: 'Пользователь не найден' });
+
+    const updated = await UserService.update(user.id, { isBanned: !user.isBanned });
+    return res.json(updated);
+  } catch(err: any) {
+    res.status(500).json({ message: 'Произошла ошибка' });
   }
 }

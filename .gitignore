@@ -1,5 +1,6 @@
 node_modules
 dist
+src/db/generated
 # Keep environment variables out of version control
 .env**
 !.env.example

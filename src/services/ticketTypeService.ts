@@ -1,6 +1,6 @@
 import { prisma } from "@/db/prisma";
 import z from "zod";
-import { UserService } from "./userService";
+import { UserService } from "./user.service";
 import { TicketTypeError, TicketTypeErrorCodes } from "@/types/errors/TicketTypeError";
 import { EventService } from "./eventService";
 import { EventError, EventErrorCodes } from "@/types/errors/EventError";
@@ -122,7 +122,7 @@ export class TicketTypeService {
   static async canUserManage(userId: number, ticketTypeId?: number, eventId?: number) {
     if(!ticketTypeId && !eventId) throw new Error("ticketTypeId or eventId is required");
 
-    const user = await UserService.findUserById(userId);
+    const user = await UserService.findById(userId);
     if(!user || !user.admin) return false;
     if(user.admin.role === 'ROOT' || user.admin.role === 'ADMIN') return true;
 

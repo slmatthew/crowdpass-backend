@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { authUser } from "@/api/middlewares/authUser";
+
+import { authUser } from "@/api/middlewares/auth";
 
 import authRoutes from './auth';
 import dashboardRoutes from './dashboard';

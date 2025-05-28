@@ -1,4 +1,4 @@
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user.service";
 import { UserErrorCodes } from "@/types/errors/UserError";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { CommandContext } from "grammy";

@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import axios from "axios";
 import { logAction } from "../../../utils/logAction";
 import { signAccessToken, signRefreshToken } from "../../utils/signToken";
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user.service";
 import { ActionLogAction } from "@/constants/appConstants";
 
 const VK_APP_ID = process.env.AP_VK_APP_ID!;
@@ -50,7 +50,7 @@ export async function vkCallback(req: Request, res: Response) {
     
     const vkUserInfo = parseJwt(vkData.id_token);
 
-    const user = await UserService.findUserByPlatformId('VK', vkUserInfo.sub.toString(), true);
+    const user = await UserService.findByPlatformId('VK', vkUserInfo.sub.toString(), true);
 
     if (!user || !user.admin) {
       return res.status(403).json({ message: "Доступ запрещён: пользователь не найден или не является администратором." });

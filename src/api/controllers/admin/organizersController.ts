@@ -1,6 +1,5 @@
 import { Request, Response } from "express";
 import { OrganizerService } from "@/services/organizerService";
-import { UserService } from "@/services/userService";
 import { privileges } from "@/api/utils/privileges";
 
 export async function getAllOrganizers(req: Request, res: Response) {
@@ -28,8 +27,6 @@ export async function getAvailableOrganizers(req: Request, res: Response) {
   if(!req.user || !req.admin) return res.status(403).json({ message: "Нет доступа" });
 
   if(req.admin.role === 'MANAGER') {
-    const user = await UserService.findUserById(req.user.id);
-
     if(!req.admin.organizerId) return res.status(400).json({ message: "Вы не прикреплены к организатору, обратитесь к вышестоящим админам" });
 
     const organizers = await OrganizerService.getAdminAvailableOrganizers(req.admin.organizerId);

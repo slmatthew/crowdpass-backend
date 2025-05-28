@@ -1,7 +1,7 @@
 import { CoreController } from "./CoreController";
 import { PlatformContext, PlatformPayloads } from "./types/BotPlatformStrategy";
 import { isRootSetupActive, attemptClaimRoot } from "@/utils/checkRoot";
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user.service";
 import { ControllerResponse } from "./types/ControllerResponse";
 import { KeyboardBuilder } from "../ui/KeyboardBuilder";
 import { User } from "@prisma/client";
@@ -11,7 +11,7 @@ export class CoreUsersController<C extends PlatformContext, P extends PlatformPa
     if(!isRootSetupActive()) return this.badResult('❌ Доступ запрещён');
     if(!attemptClaimRoot(code)) return this.badResult('Неверный код');
 
-    await UserService.makeRoot(user.id);
+    await UserService.rootPurpose(user.id);
 
     return {
       ok: true,

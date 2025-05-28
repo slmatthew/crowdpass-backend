@@ -14,31 +14,34 @@ datasource db {
 }
 
 model User {
-  id                 Int      @id @default(autoincrement())
-  telegramId         String?  @unique
-  vkId               String?  @unique
-  email              String?  @unique
+  id                 Int                   @id @default(autoincrement())
+  telegramId         String?               @unique
+  vkId               String?               @unique
+  email              String?               @unique
+  phone              String?               @unique
   firstName          String
   lastName           String
-  phone              String?
-  createdAt          DateTime @default(now())
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt @default(now())
+  isBanned           Boolean               @default(false)
+  bannedAt           DateTime?
 
   bookings           Booking[]
   admin              Admin?
   ActionLog          ActionLog[]
-  sourceLinkRequests AccountLinkRequest[] @relation("SourceRequests")
-  targetLinkRequests AccountLinkRequest[] @relation("TargetRequests")
+  sourceLinkRequests AccountLinkRequest[]  @relation("SourceRequests")
+  targetLinkRequests AccountLinkRequest[]  @relation("TargetRequests")
   sessions           Session[]
 
   @@map("users")
 }
 
 model Admin {
-  id           Int    @id @default(autoincrement())
-  userId       Int    @unique
+  id           Int       @id @default(autoincrement())
+  userId       Int       @unique
   role         Role
   organizerId  Int?
-  createdAt    DateTime @default(now())
+  createdAt    DateTime  @default(now())
 
   user       User        @relation(fields: [userId], references: [id])
   organizer  Organizer?  @relation(fields: [organizerId], references: [id])
@@ -65,7 +68,7 @@ model Organizer {
 }
 
 model Event {
-  id            Int        @id @default(autoincrement())
+  id            Int          @id @default(autoincrement())
   name          String
   description   String
   startDate     DateTime
@@ -76,18 +79,18 @@ model Event {
   categoryId    Int
   subcategoryId Int
 
-  organizer     Organizer @relation(fields: [organizerId], references: [id])
-  category      Category  @relation(fields: [categoryId], references: [id])
-  subcategory   Subcategory @relation(fields: [subcategoryId], references: [id])
+  organizer     Organizer     @relation(fields: [organizerId], references: [id])
+  category      Category      @relation(fields: [categoryId], references: [id])
+  subcategory   Subcategory   @relation(fields: [subcategoryId], references: [id])
   ticketTypes   TicketType[]
 
   @@map("events")
 }
 
 model Category {
-  id           Int           @id @default(autoincrement())
+  id           Int             @id @default(autoincrement())
   name         String
-  isDeleted    Boolean       @default(false)
+  isDeleted    Boolean         @default(false)
 
   subcategories Subcategory[]
   events        Event[]
@@ -97,12 +100,12 @@ model Category {
 }
 
 model Subcategory {
-  id           Int           @id @default(autoincrement())
+  id           Int        @id @default(autoincrement())
   name         String
   categoryId   Int
-  isDeleted    Boolean       @default(false)
+  isDeleted    Boolean    @default(false)
 
-  category     Category @relation(fields: [categoryId], references: [id])
+  category     Category   @relation(fields: [categoryId], references: [id])
   events       Event[]
 
   @@unique([name, categoryId, isDeleted])
@@ -110,27 +113,27 @@ model Subcategory {
 }
 
 model TicketType {
-  id        Int      @id @default(autoincrement())
+  id        Int       @id @default(autoincrement())
   eventId   Int
   name      String
   price     Decimal
   quantity  Int
 
-  event     Event    @relation(fields: [eventId], references: [id])
+  event     Event     @relation(fields: [eventId], references: [id])
   tickets   Ticket[]
 
   @@map("ticket_types")
 }
 
 model Ticket {
-  id             Int      @id @default(autoincrement())
+  id             Int           @id @default(autoincrement())
   ticketTypeId   Int
-  qrCodeSecret   String   @unique @default(uuid())
+  qrCodeSecret   String        @unique @default(uuid())
   ownerFirstName String?
   ownerLastName  String?
-  status         TicketStatus @default(AVAILABLE)
+  status         TicketStatus  @default(AVAILABLE)
 
-  ticketType     TicketType @relation(fields: [ticketTypeId], references: [id])
+  ticketType     TicketType    @relation(fields: [ticketTypeId], references: [id])
   bookingTickets BookingTicket[]
 
   @@map("tickets")
@@ -144,12 +147,12 @@ enum TicketStatus {
 }
 
 model Booking {
-  id         Int      @id @default(autoincrement())
+  id         Int            @id @default(autoincrement())
   userId     Int
-  createdAt  DateTime @default(now())
+  createdAt  DateTime       @default(now())
   status     BookingStatus
 
-  user       User     @relation(fields: [userId], references: [id])
+  user       User           @relation(fields: [userId], references: [id])
   bookingTickets BookingTicket[]
 
   @@map("bookings")
@@ -173,15 +176,15 @@ model BookingTicket {
 }
 
 model ActionLog {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   actorId     Int
   action      String
   targetType  String
   targetId    Int
   metadata    Json?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
 
-  actor       User     @relation(fields: [actorId], references: [id])
+  actor       User      @relation(fields: [actorId], references: [id])
 
   @@map("action_logs")
 }
@@ -207,13 +210,13 @@ enum Platform {
 }
 
 model Session {
-  id           Int      @id @default(autoincrement())
+  id           Int       @id @default(autoincrement())
   userId       Int
-  refreshToken String   @unique
-  createdAt    DateTime @default(now())
+  refreshToken String    @unique
+  createdAt    DateTime  @default(now())
   expiresAt    DateTime
 
-  user         User     @relation(fields: [userId], references: [id])
+  user         User      @relation(fields: [userId], references: [id])
 
   @@map("sessions")
 }

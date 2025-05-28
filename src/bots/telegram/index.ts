@@ -1,4 +1,4 @@
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user.service";
 import { Bot, session } from "grammy";
 
 import { handleCommands } from "./handlers/commandHandler";
@@ -27,7 +27,7 @@ bot.use(async (ctx, next) => {
   const telegramUser = ctx.from;
   if (!telegramUser) return;
 
-  const user = await UserService.findOrCreateUser({
+  const user = await UserService.findOrCreate({
     telegramId: telegramUser.id.toString(),
     firstName: telegramUser.first_name,
     lastName: telegramUser.last_name ?? "",

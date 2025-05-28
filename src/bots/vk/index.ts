@@ -1,6 +1,6 @@
 import { VK } from 'vk-io';
 import { VkRouter } from './routers/router';
-import { UserService } from '@/services/userService';
+import { UserService } from '@/services/user.service';
 import { handleFallback } from './handlers/fallbackHandler'
 import { StepRouter } from './routers/stepRouter';
 import { handleEvents } from './handlers/eventsHandler';
@@ -49,7 +49,7 @@ export async function startVkBot() {
 
     const [profile] = await vk.api.users.get({ user_ids: [vkId] });
 
-    const user = await UserService.findOrCreateUser({
+    const user = await UserService.findOrCreate({
       vkId,
       firstName: profile.first_name,
       lastName: profile.last_name,

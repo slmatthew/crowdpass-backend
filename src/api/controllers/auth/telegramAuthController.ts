@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { verifyTelegramAuth } from "@/api/utils/verifyTelegramAuth";
 import { signAccessToken, signRefreshToken } from "@/api/utils/signToken";
 import { logAction } from "@/utils/logAction";
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user.service";
 import { parse, validate } from "@telegram-apps/init-data-node";
 import { ActionLogAction } from "@/constants/appConstants";
 
@@ -21,7 +21,7 @@ export class TelegramAuth {
     }
 
     try {
-      const user = await UserService.findUserByPlatformId('TELEGRAM', data.id.toString(), true);
+      const user = await UserService.findByPlatformId('TELEGRAM', data.id.toString(), true);
 
       if (!user || !user.admin) {
         return res.status(403).json({ message: "Нет доступа." });
@@ -69,7 +69,7 @@ export class TelegramAuth {
       const parsed = parse(initData);
       if(!parsed.user) throw new Error('initData invalid');
 
-      const user = await UserService.findOrCreateUser({
+      const user = await UserService.findOrCreate({
         telegramId: parsed.user.id.toString(),
         firstName: parsed.user.first_name,
         lastName: parsed.user.last_name ?? '',

@@ -2,7 +2,7 @@ import { Bot, Api, RawApi, InlineKeyboard } from "grammy";
 import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { SharedContext } from "@/types/grammy/SessionData";
 import { vk } from "@/bots/vk";
-import { UserService } from "@/services/userService";
+import { UserService } from "@/services/user.service";
 import { Platform } from "@prisma/client";
 import { UserError } from "@/types/errors/UserError";
 import { sendLinkRequest } from "@/bots/core/utils/sendLinkRequest";
