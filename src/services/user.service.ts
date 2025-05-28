@@ -350,7 +350,7 @@ export class UserService {
     };
   }
 
-  static async update(id: number, data: UserUpdateData) {
+  static async update(id: number, data: UserUpdateData): Promise<User> {
     const insert: any = data;
     if(data.isBanned) {
       insert.bannedAt = new Date();
@@ -364,7 +364,7 @@ export class UserService {
     });
   }
 
-  static async promoteAdmin(userId: number, role: "ADMIN" | "MANAGER", organizerId?: number) {
+  static async promoteAdmin(userId: number, role: "ADMIN" | "MANAGER", organizerId?: number): Promise<Admin> {
     const realOrganizerId = role === Role.ADMIN ? null : organizerId;
 
     const admin = await prisma.$transaction(async (tx) => {
@@ -382,7 +382,7 @@ export class UserService {
     return admin;
   }
 
-  static async demoteAdmin(userId: number) {
+  static async demoteAdmin(userId: number): Promise<Admin> {
     return prisma.$transaction(async (tx) => {
       const user = await tx.user.findUnique({ where: { id: userId }, include: { admin: true } });
 
