@@ -37,6 +37,11 @@ bot.use(async (ctx, next) => {
 
   await next();
 });
+bot.use((ctx, next) => {
+  if(ctx.sfx.user?.isBanned) return ctx.reply('Вы заблокированы');
+
+  next();
+});
 
 /* commands */
 handleCommands(bot);

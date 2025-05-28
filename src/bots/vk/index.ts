@@ -62,6 +62,8 @@ export async function startVkBot() {
   // === Обработка сообщений ===
 
   vk.updates.on('message_new', async (ctx) => {
+    if(ctx.state.user.isBanned) return ctx.send('Вы заблокированы');
+
     if(await stepRouter.handle(ctx)) return;
 
     await router.handle(ctx);
