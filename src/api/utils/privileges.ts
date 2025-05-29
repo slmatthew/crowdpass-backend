@@ -1,4 +1,4 @@
-import { EventService } from "@/services/eventService";
+import { EventService } from "@/services/event.service";
 import { TicketTypeService } from "@/services/ticketTypeService";
 import { Admin, User } from "@prisma/client";
 
@@ -47,7 +47,7 @@ export const privileges = {
       return user.admin.organizerId === organizerId;
     },
     update: async (user: UserAdmin, eventId: number): Promise<boolean> => {
-      return await EventService.canUserManageEvent(user.id, eventId);
+      return await EventService.canUserManage(user.id, eventId);
     },
     delete: rolesRootOrAdmin,
   },

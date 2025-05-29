@@ -1,6 +1,6 @@
 import { Event, Category, Subcategory } from "@prisma/client";
 import dayjs from "dayjs";
-import { EventService } from "@/services/eventService";
+import { EventService } from "@/services/event.service";
 import { CategoryService } from "@/services/categoryService";
 import { PAGE_SIZE } from "@/constants/appConstants";
 import { CallbackAction } from "../constants/callbackActions";
@@ -115,19 +115,25 @@ export class CoreEventsController<C extends PlatformContext, P extends PlatformP
 
   // EVENTS_ALL
   async sendAllEvents(page: number = 1): Promise<ControllerResponse> {
-    const events = await EventService.getAllEvents();
+    const events = await EventService.searchShared({ isPublished: true, isSalesEnabled: true });
     return this.sendEvents(events, page);
   }
 
   // EVENT_GET_CATEGORY
   async sendEventsByCategory(categoryId: number, page: number = 1): Promise<ControllerResponse> {
-    const events = await EventService.getEventsByCategoryId(categoryId);
+    const events = await EventService.searchShared(
+      { isPublished: true, isSalesEnabled: true },
+      { categoryId }
+    );
     return this.sendEvents(events, page, categoryId, this.strategy.callbackPayloads.eventDetailsCategory, this.strategy.callbackPayloads.eventsCategoriedPage);
   }
 
   // EVENT_GET_SUBCATEGORY
   async sendEventsBySubcategory(subcategoryId: number, page: number = 1): Promise<ControllerResponse> {
-    const events = await EventService.getEventsBySubcategoryId(subcategoryId);
+    const events = await EventService.searchShared(
+      { isPublished: true, isSalesEnabled: true },
+      { subcategoryId }
+    );
     return this.sendEvents(events, page, subcategoryId, this.strategy.callbackPayloads.eventDetailsSubcategory, this.strategy.callbackPayloads.eventsSubcategoriedPage);
   }
 
@@ -142,7 +148,7 @@ export class CoreEventsController<C extends PlatformContext, P extends PlatformP
     gEventsPage = this.strategy.callbackPayloads.eventsPage,
     gBookingStart = this.strategy.callbackPayloads.bookingStart
   ): Promise<ControllerResponse> {
-    const event = await EventService.getEventById(eventId);
+    const event = await EventService.findById(eventId);
       
     if(!event) {
       return this.badResult("Мероприятие не найдено!");

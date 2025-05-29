@@ -2,7 +2,7 @@ import { prisma } from "@/db/prisma";
 import z from "zod";
 import { UserService } from "./user.service";
 import { TicketTypeError, TicketTypeErrorCodes } from "@/types/errors/TicketTypeError";
-import { EventService } from "./eventService";
+import { EventService } from "./event.service";
 import { EventError, EventErrorCodes } from "@/types/errors/EventError";
 import { Role } from "@prisma/client";
 
@@ -40,7 +40,7 @@ export class TicketTypeService {
   }
   
   static async create(data: CreateTicketTypeDto) {
-    const event = await EventService.getEventById(data.eventId);
+    const event = await EventService.findById(data.eventId);
     if(!event) throw new EventError(EventErrorCodes.EVENT_NOT_FOUND, "Мероприятие не найдено");
 
     if(event.endDate <= new Date()) throw new TicketTypeError(TicketTypeErrorCodes.EVENT_ALREADY_ENDED, "Мероприятие уже завершилось");
@@ -134,10 +134,10 @@ export class TicketTypeService {
     }
 
     if(eventId) {
-      const event = await EventService.getEventById(eventId) ?? undefined;
+      const event = await EventService.findById(eventId) ?? undefined;
       if(!event) throw new EventError(EventErrorCodes.EVENT_NOT_FOUND, "Мероприятие не найдено");
 
-      return EventService.LcanUserManageEvent(user.admin, event);
+      return EventService._canUserManageEvent(user.admin, event);
     }
 
     return false;

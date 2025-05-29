@@ -23,17 +23,10 @@ export class UserError extends CommonError {
   }
 }
 
-type UserAdmin = User & { admin: Admin | null };
+export type UserAdmin = User & { admin: Admin | null };
+export type AdminUser = Admin & { user: User };
 
-export type UserUpdateData = {
-  telegramId?: string | null;
-  vkId?: string | null;
-  email?: string | null;
-  phone?: string | null;
-  firstName?: string;
-  lastName?: string;
-  isBanned?: boolean;
-};
+export type UserUpdateData = Partial<Omit<User, 'id' | 'createdAt' | 'updatedAt' | 'bannedAt'>>;
 
 export class UserService {
   /* finders */

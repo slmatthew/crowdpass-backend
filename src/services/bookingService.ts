@@ -2,7 +2,7 @@ import { prisma } from "../db/prisma";
 import { Booking, BookingStatus, TicketStatus } from "@prisma/client";
 import { BookingError, BookingErrorCodes } from "../types/errors/BookingError";
 import { TicketService } from "./ticketService";
-import { EventService } from "./eventService";
+import { EventService } from "./event.service";
 import { ActionLogAction } from "@/constants/appConstants";
 import { logAction } from "@/utils/logAction";
 
@@ -141,7 +141,11 @@ export class BookingService {
 		});
 		if(!bookingTicket) throw new BookingError(BookingErrorCodes.BOOKING_TICKETS_NOT_FOUND, "Не найдены билеты в бронировании");
 
-		return EventService.canUserManageEvent(userId, bookingTicket.ticket.ticketType.eventId);
+		const admin = await prisma.admin.findUnique({
+			where: { userId },
+		}) ?? undefined;
+
+		return EventService._canUserManageEvent(admin, bookingTicket.ticket.ticketType.event);
 	}
 
 	static async updateStatus(id: number, status: BookingStatus, allowStatusChange: boolean = false) {
@@ -269,6 +273,10 @@ export class BookingService {
 			const now = new Date();
 			if(ticketType.event.endDate <= now) {
 				throw new BookingError(BookingErrorCodes.EVENT_ALREADY_ENDED, "Мероприятие, связанное с одним из билетов, уже завершилось", ticket);
+			}
+
+			if(!ticketType.event.isSalesEnabled) {
+				throw new BookingError(BookingErrorCodes.EVENT_SALES_DISABLED, "Продажа билетов на это мероприятие не осуществляется");
 			}
 
 			const availableTickets = await prisma.ticket.findMany({

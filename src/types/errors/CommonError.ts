@@ -4,6 +4,8 @@ export const CommonErrorCodes = {
   USER_NOT_FOUND: "U001",
   USER_INVALID_ID: "U002",
   USER_BANNED: "U003",
+
+  EVENT_NOT_FOUND: "E001",
 } as const;
 
 export class CommonError extends Error {

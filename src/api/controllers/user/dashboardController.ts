@@ -1,7 +1,7 @@
 import { formatUser } from "@/api/utils/formatters";
 import { BookingService } from "@/services/bookingService";
-import { EventService } from "@/services/eventService";
-import { BookingStatus, Event } from "@prisma/client";
+import { EventService, SharedEvent } from "@/services/event.service";
+import { BookingStatus, Category, Event, Organizer, TicketType } from "@prisma/client";
 import { Request, Response } from "express";
 import { features } from "@/services/featuresService";
 
@@ -31,27 +31,24 @@ export async function me(req: Request, res: Response) {
   return res.json({ user });
 }
 
+type SafeEvent = Omit<
+  Event,
+  'isPublished' | 'isSalesEnabled' |
+  'createdAt' | 'updatedAt'
+>;
+
 export async function dashboard(req: Request, res: Response) {
   if(!req.user) return res.status(401).json({ message: 'Невозможно получить данные' });
 
-  let events: Event[] = await EventService.getPopularEventsSorted();
-  if(events.length === 0) {
-    events = await EventService.getAllEvents();
-  }
+  let result: SafeEvent[] = [];
 
-  events = events.slice(0, 3);
-  events = events.map(e => ({
-    name: e.name,
-    id: e.id,
-    description: e.description,
-    startDate: e.startDate,
-    endDate: e.endDate,
-    location: e.location,
-    posterUrl: e.posterUrl,
-    organizerId: e.organizerId,
-    categoryId: e.categoryId,
-    subcategoryId: e.subcategoryId,
-  }));
+  const popular = await EventService.getPopular();
+  if(popular.length === 0) {
+    const events = await EventService.searchShared();
+    result = events.slice(0, 3).map((event) => EventService.format<SafeEvent>(event, 'safe'));
+  } else {
+    result = popular.slice(0, 3).map((event) => EventService.format<SafeEvent>(event, 'safe'));
+  }
 
   const bookings = (await BookingService.getByUserId(req.user.id)).length;
 
@@ -72,7 +69,7 @@ export async function dashboard(req: Request, res: Response) {
   })();
 
   return res.json({
-    events,
+    events: result,
     bookings,
     tickets,
   });

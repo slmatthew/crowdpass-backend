@@ -68,21 +68,25 @@ model Organizer {
 }
 
 model Event {
-  id            Int          @id @default(autoincrement())
-  name          String
-  description   String
-  startDate     DateTime
-  endDate       DateTime
-  location      String
-  posterUrl     String?
-  organizerId   Int
-  categoryId    Int
-  subcategoryId Int
+  id              Int          @id @default(autoincrement())
+  name            String
+  description     String
+  startDate       DateTime
+  endDate         DateTime
+  location        String
+  posterUrl       String?
+  organizerId     Int
+  categoryId      Int
+  subcategoryId   Int
+  isPublished     Boolean       @default(false)
+  isSalesEnabled  Boolean       @default(false)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt @default(now())
 
-  organizer     Organizer     @relation(fields: [organizerId], references: [id])
-  category      Category      @relation(fields: [categoryId], references: [id])
-  subcategory   Subcategory   @relation(fields: [subcategoryId], references: [id])
-  ticketTypes   TicketType[]
+  organizer       Organizer     @relation(fields: [organizerId], references: [id])
+  category        Category      @relation(fields: [categoryId], references: [id])
+  subcategory     Subcategory   @relation(fields: [subcategoryId], references: [id])
+  ticketTypes     TicketType[]
 
   @@map("events")
 }

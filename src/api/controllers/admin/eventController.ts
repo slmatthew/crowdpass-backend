@@ -1,21 +1,17 @@
 import { Request, Response } from "express";
-import { EventService } from "@/services/eventService";
+import { EventService } from "@/services/event.service";
 import { z } from "zod";
 import { logAction } from "../../../utils/logAction";
-import { extractQueryOptions, formatEvent } from "../../utils/formatters";
-import { getPrismaIncludeOptions } from "../../utils/formatters/formatEvent";
 import { privileges } from "@/api/utils/privileges";
 import { ActionLogAction } from "@/constants/appConstants";
 
 export async function getAllEvents(req: Request, res: Response) {
-  const { extended, fields } = extractQueryOptions(req);
-
-  const events = await EventService.getAllEvents(false, getPrismaIncludeOptions({ extended, fields }));
+  const events = await EventService.searchShared({ upcoming: false });
   res.json(events);
 }
 
 export async function getPopularEvents(req: Request, res: Response) {
-  const events = await EventService.getPopularEventsSorted();
+  const events = await EventService.getPopular();
   res.json(events);
 }
 
@@ -25,13 +21,8 @@ export async function getEventById(req: Request, res: Response) {
 
   const id = Number(req.params.id);
   const event =
-    extended ? await EventService.getEventById(id, {
-			organizer: true,
-			category: true,
-			subcategory: true,
-			ticketTypes: true,
-		})
-    : await EventService.getEventById(id);
+    extended ? await EventService.findByIdShared(id)
+    : await EventService.findById(id);
 
   if (!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
   res.json(event);
@@ -43,7 +34,7 @@ export async function getEventOverview(req: Request, res: Response) {
     return res.status(403).json({ message: "Нет доступа" });
   }
 
-  const event = await EventService.getEventOverview(id);
+  const event = await EventService.getOverview(id);
   if (!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
 
   const revenue = await EventService.getEventTotalRevenue(event.id);
@@ -58,20 +49,39 @@ export async function getEventSalesByDay(req: Request, res: Response) {
     return res.status(403).json({ message: 'Доступ запрещен' });
   }
 
-  const result = await EventService.getEventSalesByDay(id);
+  const result = await EventService.getSalesByDay(id);
   res.json(result);
 }
 
 const updateEventSchema = z.object({
-  name: z.string().min(3),
-  description: z.string().min(10),
-  location: z.string().min(1),
-  startDate: z.string().datetime(),
-  endDate: z.string().datetime(),
-  organizerId: z.coerce.number(),
-  categoryId: z.coerce.number(),
-  subcategoryId: z.coerce.number(),
+  name: z.string().min(3).optional(),
+  description: z.string().min(10).optional(),
+  startDate: z.string().datetime().optional(),
+  endDate: z.string().datetime().optional(),
+  location: z.string().min(1).optional(),
+  posterUrl: z.string().url().optional(),
+  organizerId: z.coerce.number().optional(),
+  categoryId: z.coerce.number().optional(),
+  subcategoryId: z.coerce.number().optional(),
+  isPublished: z.coerce.boolean().optional(),
+  isSalesEnabled: z.coerce.boolean().optional(),
 });
+
+const createEventSchema = updateEventSchema
+  .required({
+    name: true,
+    description: true,
+    startDate: true,
+    endDate: true,
+    location: true,
+    organizerId: true,
+    categoryId: true,
+    subcategoryId: true,
+  })
+  .omit({
+    isPublished: true,
+    isSalesEnabled: true,
+  });
 
 export async function updateEventById(req: Request, res: Response) {
   try {
@@ -80,13 +90,13 @@ export async function updateEventById(req: Request, res: Response) {
 
     const validated = updateEventSchema.parse(req.body);
     
-    const prev = await EventService.getEventById(id);
+    const prev = await EventService.findById(id);
     if (!prev) return res.status(404).json({ message: 'Мероприятие не найдено' });
 
-    const updatedEvent = await EventService.updateEvent(id, {
+    const updatedEvent = await EventService.update(id, {
       ...validated,
-      startDate: new Date(validated.startDate),
-      endDate: new Date(validated.endDate),
+      startDate: validated.startDate ? new Date(validated.startDate) : undefined,
+      endDate: validated.endDate ? new Date(validated.endDate) : undefined,
     });
 
     await logAction({
@@ -114,18 +124,20 @@ export async function updateEventById(req: Request, res: Response) {
 
 export async function createEvent(req: Request, res: Response) {
   try {
-    const data = updateEventSchema.parse(req.body); // та же схема подходит
+    const data = createEventSchema.parse(req.body);
 
     if(!privileges.events.create(req.user!, data.organizerId)) return res.status(403).json({ message: "Нет доступа" }); 
 
-    const created = await EventService.createEvent({
+    const created = await EventService.create({
       ...data,
       startDate: new Date(data.startDate),
       endDate: new Date(data.endDate),
+      isPublished: false,
+      isSalesEnabled: false,
     });
 
     const adminId = req.user?.id;
-    if (adminId) {
+    if(adminId) {
       await logAction({
         actorId: req.user?.id || 0,
         action: ActionLogAction.EVENT_CREATE,

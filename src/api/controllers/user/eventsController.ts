@@ -1,9 +1,9 @@
-import { EventService } from "@/services/eventService";
+import { EventService } from "@/services/event.service";
 import { Event } from "@prisma/client";
 import { Request, Response } from "express";
 
 type IdNamePair = { id: number, name: string };
-type CompactEvent = Omit<Event, 'endDate' | 'organizer' | 'category' | 'subcategory' | 'ticketTypes'> & {
+type CompactEvent = Omit<Event, 'endDate' | 'organizer' | 'category' | 'subcategory' | 'ticketTypes' | 'isPublished'> & {
   prices: {
     min: number;
     max: number;
@@ -15,10 +15,13 @@ export async function compactList(req: Request, res: Response) {
 
   const { skip, take, categoryId, subcategoryId, search } = req.query;
 
-  const allEvents = await EventService.searchEvents(
-    categoryId ? Number(categoryId) : undefined,
-    subcategoryId ? Number(subcategoryId) : undefined,
-    search ? search.toString() : undefined
+  const allEvents = await EventService.searchShared(
+    { isPublished: true, },
+    {
+      categoryId: categoryId ? Number(categoryId) : undefined,
+      subcategoryId: subcategoryId ? Number(subcategoryId) : undefined,
+      search: search ? search.toString() : undefined,
+    }
   );
   
   const eventsList = ((): typeof allEvents => {
@@ -58,6 +61,7 @@ export async function compactList(req: Request, res: Response) {
     const prices = event.ticketTypes.map(t => Number(t.price));
     const compactEvent = {
       ...event,
+      isPublished: undefined,
       organizer: undefined,
       category: undefined,
       subcategory: undefined,
@@ -82,15 +86,16 @@ export async function compactList(req: Request, res: Response) {
 
 export async function details(req: Request, res: Response) {
   const { id } = req.params;
-  const event = await EventService.getEventOverview(Number(id));
+  const event = await EventService.getOverview(Number(id));
 
   if(!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
+  if(!event.isPublished) return res.status(404).json({ message: 'Мероприятие не найдено' });
 
   (event as any).ticketTypes = event.ticketTypes.map(tt => ({
     id: tt.id,
     name: tt.name,
     price: tt.price,
-    available: tt.stats.availableTickets
+    available: event.isSalesEnabled ? tt.stats.availableTickets : 0,
   }));
 
   (event as any).organizerId = undefined;

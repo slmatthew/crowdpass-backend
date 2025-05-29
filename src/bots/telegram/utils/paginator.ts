@@ -1,6 +1,6 @@
 import { CallbackQueryContext, CommandContext, Context, InlineKeyboard } from "grammy";
 import { SharedContext } from "@/types/grammy/SessionData";
-import { EventService } from "@/services/eventService";
+import { EventService } from "@/services/event.service";
 import { BookingService } from "@/services/bookingService";
 import { extraGoToHomeKeyboard } from "../constants/extraGoToHomeKeyboard";
 import { PAGE_SIZE } from "@/constants/appConstants";
@@ -95,7 +95,7 @@ export async function sendBookingsPage(ctx: CommandContext<SharedContext>|Callba
 }
 
 export async function sendEventsPage(ctx: CommandContext<Context>|CallbackQueryContext<Context>, page: number, isEdit = false) {
-  const events = await EventService.getAllEvents();
+  const events = await EventService.searchShared();
 
   if (events.length === 0) {
     const message = "Пока нет доступных мероприятий 😔";

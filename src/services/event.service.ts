@@ -1,29 +1,61 @@
-import { EventError, EventErrorCodes } from '@/types/errors/EventError';
 import { prisma } from '../db/prisma';
-import { Admin, Event, Role } from '@prisma/client';
+import { Admin, Category, Event, Organizer, Prisma, Role, TicketType } from '@prisma/client';
+import { CommonError, CommonErrorCodes } from '@/types/errors/CommonError';
+import { AdminUser } from './user.service';
 import { ActionLogAction } from '@/constants/appConstants';
 
-interface EventExtendedOptions {
-  organizer?: boolean,
-  category?: boolean,
-  subcategory?: boolean,
-  ticketTypes?: boolean,
+export const EventErrorCodes = {
+  MANAGER_NOT_ALLOWED: "EC-001",
+} as const;
+
+export class EventError extends CommonError {
+  code: string;
+  metadata?: any;
+
+  constructor(code: string, message: string, metadata?: any) {
+    super(code, message, metadata);
+    this.name = "EventError";
+    this.code = code;
+    this.metadata = metadata;
+  }
 }
 
-interface UpdateEventData {
-  name: string;
-  description: string;
-  location: string;
-  startDate: Date;
-  endDate: Date;
-  organizerId: number;
-  categoryId: number;
-  subcategoryId: number;
-}
+type EventUpdateData = Partial<Omit<Event, 'id' | 'createdAt' | 'updatedAt'>>;
+type EventCreateData = Omit<Required<EventUpdateData>, 'posterUrl'> & { posterUrl?: string | null; };
+
+const sharedEvent = Prisma.validator<Prisma.EventDefaultArgs>()({
+  include: {
+    organizer: true,
+    category: true,
+    subcategory: true,
+    ticketTypes: true,
+  },
+});
+
+export type SharedEvent = Prisma.EventGetPayload<
+  typeof sharedEvent
+>;
+
+export type EventStats = {
+  totalTickets: number;
+  availableTickets: number;
+  reservedTickets: number;
+  soldTickets: number;
+  usedTickets: number;
+};
+
+export type SharedEventWithStats = Omit<SharedEvent, 'ticketTypes'> & {
+  ticketTypes: Array<
+    SharedEvent['ticketTypes'][number] & {
+      stats: EventStats;
+    }
+  >;
+  stats: EventStats;
+};
 
 export class EventService {
-  static LcanUserManageEvent(admin?: Admin, event?: Event) {
-    if(!event) throw new EventError(EventErrorCodes.EVENT_NOT_FOUND, 'Мероприятие не найдено');
+  static _canUserManageEvent(admin?: Admin, event?: Event): boolean {
+    if(!event) throw new EventError(CommonErrorCodes.EVENT_NOT_FOUND, 'Мероприятие не найдено');
 
     if(!admin) return false;
     if(admin.role === Role.ROOT || admin.role === Role.ADMIN) return true;
@@ -32,85 +64,56 @@ export class EventService {
     return false;
   }
 
-  static async getAllEvents(
-    upcoming: boolean = true,
-    include: EventExtendedOptions = {},
-    orderBy: { startDate?: 'asc' | 'desc' } = { startDate: 'asc' },
-  ) {
-    const where = upcoming ? { endDate: { gte: new Date() } } : {};
-
-    return prisma.event.findMany({
-      where,
-      include,
-      orderBy,
-    });
-  }
-
-  static async searchEvents(categoryId?: number, subcategoryId?: number, search?: string) {
+  static async searchShared(
+    { upcoming = true, isPublished, isSalesEnabled }: {
+      upcoming?: boolean;
+      isPublished?: boolean;
+      isSalesEnabled?: boolean;
+    } = {},
+    { categoryId, subcategoryId, search }: {
+      categoryId?: number;
+      subcategoryId?: number;
+      search?: string;
+    } = {},
+    { take, skip }: {
+      take?: number;
+      skip?: number;
+    } = {},
+  ): Promise<SharedEvent[]> {
     return prisma.event.findMany({
       where: {
-        startDate: {
+        endDate: upcoming ? {
           gte: new Date(),
-        },
+        } : undefined,
         name: search,
         categoryId,
         subcategoryId,
+        isPublished,
+        isSalesEnabled,
       },
-      include: {
-        organizer: true,
-        category: true,
-        subcategory: true,
-        ticketTypes: true,
-      },
+      take,
+      skip,
+      ...sharedEvent,
       orderBy: {
         startDate: 'asc'
-      },
+      }
     });
   }
 
-  static async getEventsByCategoryId(categoryId: number) {
-    return prisma.event.findMany({
-      where: {
-        categoryId,
-        endDate: {
-          gte: new Date()
-        }
-      },
-      orderBy: { startDate: 'asc' },
-    });
-  }
-
-  static async getEventsBySubcategoryId(subcategoryId: number) {
-    return prisma.event.findMany({
-      where: {
-        subcategoryId,
-        endDate: {
-          gte: new Date()
-        }
-      },
-      orderBy: { startDate: 'asc' },
-    });
-  }
-
-  static async getEventById(id: number, include: EventExtendedOptions = {}) {
+  static async findByIdShared(id: number): Promise<SharedEvent | null> {
     return prisma.event.findUnique({
       where: { id },
-      include,
+      ...sharedEvent,
     });
   }
 
-  static async getEventOverview(id: number) {
-    const event = await prisma.event.findUnique({
-      where: { id },
-      include: {
-        organizer: true,
-        category: true,
-        subcategory: true,
-        ticketTypes: true,
-      },
-    });
-  
-    if (!event) return null;
+  static async findById(id: number): Promise<Event | null> {
+    return prisma.event.findUnique({ where: { id } });
+  }
+
+  static async getOverview(id: number): Promise<null | SharedEventWithStats> {
+    const event = await EventService.findByIdShared(id);
+    if(!event) return null;
   
     const ticketStats = await prisma.ticket.groupBy({
       by: ['ticketTypeId', 'status'],
@@ -120,7 +123,7 @@ export class EventService {
       _count: { _all: true },
     });
   
-    const ticketTypeStats: Record<number, any> = {};
+    const ticketTypeStats: Record<number, EventStats> = {};
     for (const type of event.ticketTypes) {
       ticketTypeStats[type.id] = {
         totalTickets: 0,
@@ -159,10 +162,10 @@ export class EventService {
         reservedTickets: 0,
         soldTickets: 0,
         usedTickets: 0,
-      },
+      } as EventStats,
     }));
   
-    const stats = Object.values(ticketTypeStats).reduce(
+    const stats: EventStats = Object.values(ticketTypeStats).reduce(
       (acc, stat) => {
         acc.totalTickets += stat.totalTickets;
         acc.availableTickets += stat.availableTickets;
@@ -187,9 +190,18 @@ export class EventService {
     };
   }  
 
-  static async getPopularEventsSorted() {
+  static async getPopular(): Promise<Array<Event & {
+    ticketTypes: TicketType[];
+    organizer: Organizer | null;
+    category: Category | null;
+    soldCount: number;
+  }>> {
     const events = await prisma.event.findMany({
-      where: { startDate: { gte: new Date() } },
+      where: {
+        endDate: { gte: new Date() },
+        isPublished: true,
+        isSalesEnabled: true,
+      },
       include: {
         ticketTypes: {
           include: { tickets: true },
@@ -204,27 +216,30 @@ export class EventService {
         const soldCount = event.ticketTypes
           .flatMap((tt) => tt.tickets)
           .filter((t) => t.status === 'SOLD').length;
+        
+        const ticketTypes = event.ticketTypes.map(({ tickets, ...tt }) => tt);
   
-        return { ...event, soldCount };
+        return { ...event, ticketTypes, soldCount };
       })
       .sort((a, b) => b.soldCount - a.soldCount);
   }
 
-  static async getEventManagers(id: number, extended: boolean = false) {
+  static async getManagers(id: number, extended: boolean = false): Promise<Array<AdminUser> | Array<number>> {
     const event = await prisma.event.findUnique({
       where: { id },
     });
-    if (!event) throw new EventError(EventErrorCodes.EVENT_NOT_FOUND, 'Мероприятие не найдено');
+    if (!event) throw new EventError(CommonErrorCodes.EVENT_NOT_FOUND, 'Мероприятие не найдено');
 
     const managers = await prisma.admin.findMany({
       where: { organizerId: event.organizerId },
+      include: { user: true }
     });
 
     const result = extended ? managers : managers.map((m) => m.id);
     return result;
   }
 
-  static async canUserManageEvent(userId: number, eventId: number) {
+  static async canUserManage(userId: number, eventId: number): Promise<boolean> {
     const event = await prisma.event.findUnique({
       where: { id: eventId },
     }) ?? undefined;
@@ -233,41 +248,26 @@ export class EventService {
       where: { userId },
     }) ?? undefined;
 
-    return this.LcanUserManageEvent(admin, event);
+    return this._canUserManageEvent(admin, event);
   }
 
-  static async updateEvent(id: number, data: UpdateEventData) {
+  static async update(id: number, data: EventUpdateData) {
     return prisma.event.update({
       where: { id },
-      data: {
-        name: data.name,
-        description: data.description,
-        location: data.location,
-        startDate: data.startDate,
-        endDate: data.endDate,
-        organizerId: data.organizerId,
-        categoryId: data.categoryId,
-        subcategoryId: data.subcategoryId,
-      },
+      data,
     });
   };
   
-  static async createEvent(data: UpdateEventData) {
+  static async create(data: EventCreateData): Promise<Event> {
     return prisma.event.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        location: data.location,
-        startDate: data.startDate,
-        endDate: data.endDate,
-        organizerId: data.organizerId,
-        categoryId: data.categoryId,
-        subcategoryId: data.subcategoryId,
-      },
+      data,
     });
   };
 
-  static async getEventSalesByDay(eventId: number) {
+  static async getSalesByDay(eventId: number): Promise<{
+    day: string;
+    value: number;
+  }[]> {
     const logs = await prisma.actionLog.findMany({
       where: {
         action: ActionLogAction.BOOKING_PAID,
@@ -298,7 +298,7 @@ export class EventService {
       .map(([day, value]) => ({ day, value }));
   }
 
-  static async getEventTotalRevenue(eventId: number) {
+  static async getEventTotalRevenue(eventId: number): Promise<number> {
     const logs = await prisma.actionLog.findMany({
       where: {
         action: ActionLogAction.BOOKING_PAID,
@@ -321,5 +321,16 @@ export class EventService {
     }
 
     return total;
+  }
+
+  static format<T>(event: Event | SharedEvent | SharedEventWithStats, mode: 'safe'): T {
+    switch(mode) {
+      case 'safe': default:
+        return (({
+          isPublished, isSalesEnabled, createdAt, updatedAt,
+          organizer, category, subcategory, ticketTypes,
+          ...event
+        }: any) => event)(event);
+    }
   }
 }
