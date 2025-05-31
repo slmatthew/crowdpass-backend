@@ -83,5 +83,8 @@ export async function getFeatures(req: Request, res: Response) {
   res.json({
     "tp": isTelegramPaymentsWorking,
     "stable": process.env.NODE_ENV === 'production',
+    "ap": {
+      "ban": true,
+    },
   });
 }
