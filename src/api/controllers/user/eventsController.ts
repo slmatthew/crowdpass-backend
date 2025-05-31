@@ -59,13 +59,9 @@ export async function compactList(req: Request, res: Response) {
     subcategories.set(event.subcategory.id, { id: event.subcategory.id, name: event.subcategory.name, categoryId: event.subcategory.categoryId });
 
     const prices = event.ticketTypes.map(t => Number(t.price));
+    const { isPublished, organizer, category, subcategory, ticketTypes, ...eventOmited } = event;
     const compactEvent = {
-      ...event,
-      isPublished: undefined,
-      organizer: undefined,
-      category: undefined,
-      subcategory: undefined,
-      ticketTypes: undefined,
+      ...eventOmited,
       prices: {
         min: Math.min(...prices) || 0,
         max: Math.max(...prices) || 0,
@@ -91,17 +87,15 @@ export async function details(req: Request, res: Response) {
   if(!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
   if(!event.isPublished) return res.status(404).json({ message: 'Мероприятие не найдено' });
 
-  (event as any).ticketTypes = event.ticketTypes.map(tt => ({
-    id: tt.id,
-    name: tt.name,
-    price: tt.price,
-    available: event.isSalesEnabled ? tt.stats.availableTickets : 0,
-  }));
+  const { isPublished, ticketTypes, organizerId, categoryId, subcategoryId, stats, ...eventDetails } = event;
 
-  (event as any).organizerId = undefined;
-  (event as any).categoryId = undefined;
-  (event as any).subcategoryId = undefined;
-  (event as any).stats = undefined;
-
-  res.json(event);
+  res.json({
+    ...eventDetails,
+    ticketTypes: event.ticketTypes.map(tt => ({
+      id: tt.id,
+      name: tt.name,
+      price: tt.price,
+      available: event.isSalesEnabled ? tt.stats.availableTickets : 0,
+    }))
+  });
 }

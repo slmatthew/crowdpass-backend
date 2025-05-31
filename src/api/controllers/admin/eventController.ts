@@ -90,8 +90,11 @@ export async function updateEventById(req: Request, res: Response) {
 
     const validated = updateEventSchema.parse(req.body);
     
-    const prev = await EventService.findById(id);
-    if (!prev) return res.status(404).json({ message: 'Мероприятие не найдено' });
+    const prev = await EventService.findByIdShared(id);
+    if(!prev) return res.status(404).json({ message: 'Мероприятие не найдено' });
+
+    if(validated.isSalesEnabled && prev.ticketTypes.length === 0)
+      return res.status(400).json({ message: 'Перед началом продаж необходимо добавить минимум 1 тип билетов' });
 
     const updatedEvent = await EventService.update(id, {
       ...validated,

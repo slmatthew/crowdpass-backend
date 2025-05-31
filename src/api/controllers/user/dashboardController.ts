@@ -43,11 +43,13 @@ export async function dashboard(req: Request, res: Response) {
   let result: SafeEvent[] = [];
 
   const popular = await EventService.getPopular();
-  if(popular.length === 0) {
-    const events = await EventService.searchShared();
+  const popularFiltered = popular.filter(pe => pe.isPublished && pe.isSalesEnabled);
+
+  if(popularFiltered.length === 0) {
+    const events = await EventService.searchShared({ isPublished: true, isSalesEnabled: true });
     result = events.slice(0, 3).map((event) => EventService.format<SafeEvent>(event, 'safe'));
   } else {
-    result = popular.slice(0, 3).map((event) => EventService.format<SafeEvent>(event, 'safe'));
+    result = popularFiltered.slice(0, 3).map((event) => EventService.format<SafeEvent>(event, 'safe'));
   }
 
   const bookings = (await BookingService.getByUserId(req.user.id)).length;
