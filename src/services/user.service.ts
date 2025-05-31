@@ -105,11 +105,24 @@ export class UserService {
     total: number;
   }> {
     const skip = (page - 1) * pageSize;
+    
+    let id: number | undefined = undefined;
+
+    try {
+      const parsed = Number(search);
+      if (
+        Number.isSafeInteger(parsed) &&
+        parsed >= -2147483648 &&
+        parsed <= 2147483647
+      ) {
+        id = parsed;
+      }
+    } catch {}
 
     const where = search
       ? {
           OR: [
-            { id: Number(search).toString() === search ? Number(search) : -1 },
+            { id },
             { telegramId: search },
             { vkId: search },
             { email: { contains: search, mode: "insensitive" as const } },
