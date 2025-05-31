@@ -75,6 +75,13 @@ export class TicketTypeService {
         tickets: {
           include: { bookingTickets: true },
         },
+        event: {
+          select: {
+            _count: { 
+              select: { ticketTypes: true },
+            },
+          },
+        },
       },
     });
   
@@ -99,24 +106,33 @@ export class TicketTypeService {
       distinct: ['bookingId'],
     }).then(results => results.map(r => r.bookingId));
 
-    await prisma.bookingTicket.deleteMany({
-      where: { ticketId: { in: ticketIds } },
-    });
+    return prisma.$transaction(async (tx) => {
+      await tx.bookingTicket.deleteMany({
+        where: { ticketId: { in: ticketIds } },
+      });
 
-    await prisma.booking.updateMany({
-      where: {
-        id: { in: affectedBookingIds },
-        bookingTickets: { none: {} },
-        status: "ACTIVE",
-      },
-      data: { status: "CANCELLED" },
-    });
+      await tx.booking.updateMany({
+        where: {
+          id: { in: affectedBookingIds },
+          bookingTickets: { none: {} },
+          status: "ACTIVE",
+        },
+        data: { status: "CANCELLED" },
+      });
 
-    await prisma.ticket.deleteMany({
-      where: { id: { in: ticketIds } },
-    });
+      await tx.ticket.deleteMany({
+        where: { id: { in: ticketIds } },
+      });
 
-    return prisma.ticketType.delete({ where: { id } });
+      if(ticketType.event._count.ticketTypes - 1 === 0) {
+        await tx.event.update({
+          where: { id: ticketType.eventId },
+          data: { isSalesEnabled: false },
+        });
+      }
+
+      return tx.ticketType.delete({ where: { id } });
+    });
   }
 
   static async canUserManage(userId: number, ticketTypeId?: number, eventId?: number) {
