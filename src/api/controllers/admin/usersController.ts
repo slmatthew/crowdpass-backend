@@ -168,6 +168,17 @@ export async function banUnban(req: Request, res: Response) {
     const user = await UserService.findById(userId);
     if(!user) return res.status(404).json({ message: 'Пользователь не найден' });
 
+    if(user.admin && req.admin!.role !== 'ROOT')
+      return res.status(403).json({ message: 'Вы не можете заблокировать другого администратора' });
+
+    /**
+     * предполагается, что первый пользователь в БД – это самый
+     * главный администратор, поэтому используем hard code проверку
+     * по идентификатору для блокировки других ROOT
+     */
+    if(user.admin && user.admin.role === 'ROOT' && req.admin!.role === 'ROOT' && req.user!.id !== 1)
+      return res.status(403).json({ message: 'Вы не можете заблокировать другого ROOT-пользователя' });
+
     const updated = await UserService.update(user.id, { isBanned: !user.isBanned });
     return res.json(updated);
   } catch(err: any) {
