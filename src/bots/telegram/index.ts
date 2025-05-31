@@ -37,8 +37,20 @@ bot.use(async (ctx, next) => {
 
   await next();
 });
-bot.use((ctx, next) => {
-  if(ctx.sfx.user?.isBanned) return ctx.reply('Вы заблокированы');
+bot.use(async (ctx, next) => {
+  if(ctx.sfx.user?.isBanned) {
+    try { await ctx.answerCallbackQuery(); } catch {}
+
+    try {
+      await ctx.editMessageText('Вы заблокированы');
+    } catch {
+      try {
+        await ctx.reply('Вы заблокированы');
+      } catch {}
+    }
+
+    return;
+  }
 
   next();
 });
