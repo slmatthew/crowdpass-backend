@@ -1,0 +1,212 @@
+//// ------------------------------------------------------
+//// THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+//// ------------------------------------------------------
+
+Table users {
+  id Int [pk, increment]
+  telegramId String [unique]
+  vkId String [unique]
+  email String [unique]
+  phone String [unique]
+  firstName String [not null]
+  lastName String [not null]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  isBanned Boolean [not null, default: false]
+  bannedAt DateTime
+  bookings bookings [not null]
+  admin admins
+  ActionLog action_logs [not null]
+  sourceLinkRequests account_link_requests [not null]
+  targetLinkRequests account_link_requests [not null]
+  sessions sessions [not null]
+}
+
+Table admins {
+  id Int [pk, increment]
+  userId Int [unique, not null]
+  role Role [not null]
+  organizerId Int
+  createdAt DateTime [default: `now()`, not null]
+  user users [not null]
+  organizer organizers
+}
+
+Table organizers {
+  id Int [pk, increment]
+  name String [not null]
+  description String
+  contacts String
+  events events [not null]
+  admins admins [not null]
+}
+
+Table events {
+  id Int [pk, increment]
+  name String [not null]
+  description String [not null]
+  startDate DateTime [not null]
+  endDate DateTime [not null]
+  location String [not null]
+  posterUrl String
+  organizerId Int [not null]
+  categoryId Int [not null]
+  subcategoryId Int [not null]
+  isPublished Boolean [not null, default: false]
+  isSalesEnabled Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  updatedAt DateTime [default: `now()`, not null]
+  organizer organizers [not null]
+  category categories [not null]
+  subcategory subcategories [not null]
+  ticketTypes ticket_types [not null]
+}
+
+Table categories {
+  id Int [pk, increment]
+  name String [not null]
+  isDeleted Boolean [not null, default: false]
+  subcategories subcategories [not null]
+  events events [not null]
+
+  indexes {
+    (name, isDeleted) [unique]
+  }
+}
+
+Table subcategories {
+  id Int [pk, increment]
+  name String [not null]
+  categoryId Int [not null]
+  isDeleted Boolean [not null, default: false]
+  category categories [not null]
+  events events [not null]
+
+  indexes {
+    (name, categoryId, isDeleted) [unique]
+  }
+}
+
+Table ticket_types {
+  id Int [pk, increment]
+  eventId Int [not null]
+  name String [not null]
+  price Decimal [not null]
+  quantity Int [not null]
+  event events [not null]
+  tickets tickets [not null]
+}
+
+Table tickets {
+  id Int [pk, increment]
+  ticketTypeId Int [not null]
+  qrCodeSecret String [unique, not null]
+  ownerFirstName String
+  ownerLastName String
+  status TicketStatus [not null, default: 'AVAILABLE']
+  ticketType ticket_types [not null]
+  bookingTickets booking_tickets [not null]
+}
+
+Table bookings {
+  id Int [pk, increment]
+  userId Int [not null]
+  createdAt DateTime [default: `now()`, not null]
+  status BookingStatus [not null]
+  user users [not null]
+  bookingTickets booking_tickets [not null]
+}
+
+Table booking_tickets {
+  id Int [pk, increment]
+  bookingId Int [not null]
+  ticketId Int [not null]
+  booking bookings [not null]
+  ticket tickets [not null]
+}
+
+Table action_logs {
+  id Int [pk, increment]
+  actorId Int [not null]
+  action String [not null]
+  targetType String [not null]
+  targetId Int [not null]
+  metadata Json
+  createdAt DateTime [default: `now()`, not null]
+  actor users [not null]
+}
+
+Table account_link_requests {
+  id Int [pk, increment]
+  code String [unique, not null]
+  sourceId Int [not null]
+  targetId Int
+  platform Platform [not null]
+  confirmed Boolean [not null, default: false]
+  createdAt DateTime [default: `now()`, not null]
+  source users [not null]
+  target users
+}
+
+Table sessions {
+  id Int [pk, increment]
+  userId Int [not null]
+  refreshToken String [unique, not null]
+  createdAt DateTime [default: `now()`, not null]
+  expiresAt DateTime [not null]
+  user users [not null]
+}
+
+Enum Role {
+  ROOT
+  ADMIN
+  MANAGER
+}
+
+Enum TicketStatus {
+  AVAILABLE
+  RESERVED
+  SOLD
+  USED
+}
+
+Enum BookingStatus {
+  ACTIVE
+  CANCELLED
+  PAID
+}
+
+Enum Platform {
+  TELEGRAM
+  VK
+}
+
+Ref: admins.userId - users.id
+
+Ref: admins.organizerId > organizers.id
+
+Ref: events.organizerId > organizers.id
+
+Ref: events.categoryId > categories.id
+
+Ref: events.subcategoryId > subcategories.id
+
+Ref: subcategories.categoryId > categories.id
+
+Ref: ticket_types.eventId > events.id
+
+Ref: tickets.ticketTypeId > ticket_types.id
+
+Ref: bookings.userId > users.id
+
+Ref: booking_tickets.bookingId > bookings.id
+
+Ref: booking_tickets.ticketId > tickets.id
+
+Ref: action_logs.actorId > users.id
+
+Ref: account_link_requests.sourceId > users.id [delete: Cascade]
+
+Ref: account_link_requests.targetId > users.id [delete: Cascade]
+
+Ref: sessions.userId > users.id

@@ -1,4 +1,4 @@
-import { sendBookingCancel, sendBookingConfirm, sendBookingSelectType, sendBookingStart, sendMyBookingCancel, sendMyBookingPay, sendMyBookings } from "../controllers/bookingsController";
+import { sendBookingCancel, sendBookingConfirm, sendBookingSelectType, sendBookingStart, sendMyBookingCancel, sendMyBookingPay, sendMyBookings } from "../controllers/bookingController";
 import { VkRouter } from "../routers/router";
 import { CallbackAction } from "@/bots/core/constants/callbackActions";
 import { handlePayload } from "../utils/handlePayload";

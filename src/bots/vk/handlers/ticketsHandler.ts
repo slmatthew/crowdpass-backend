@@ -1,6 +1,6 @@
 import { CallbackAction } from "@/bots/core/constants/callbackActions";
 import { handlePayload } from "../utils/handlePayload";
-import { sendMyTickets, sendTicketQr } from "../controllers/ticketsController";
+import { sendMyTickets, sendTicketQr } from "../controllers/ticketController";
 import { VkRouter } from "../routers/router";
 
 export function handleTickets(router: VkRouter) {

@@ -1,6 +1,6 @@
 import { CallbackAction } from "@/bots/core/constants/callbackActions"
 import { VkRouter } from "../routers/router"
-import { sendAllEvents, sendCategoryChoice, sendEventDetails, sendEventsByCategory, sendEventsBySubcategory, sendSubcategoryChoice } from "../controllers/eventsController"
+import { sendAllEvents, sendCategoryChoice, sendEventDetails, sendEventsByCategory, sendEventsBySubcategory, sendSubcategoryChoice } from "../controllers/eventController"
 import { handlePayload } from "../utils/handlePayload";
 import { VkStrategy } from "../controllers/VkStrategy";
 

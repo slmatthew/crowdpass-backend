@@ -2,11 +2,11 @@ import { UserService } from "@/services/user.service";
 import { Bot, session } from "grammy";
 
 import { handleCommands } from "./handlers/commandHandler";
-import { handleBookingCallbacks } from "./handlers/bookingHandlers";
-import { handleTicketCallbacks } from "./handlers/ticketHandlers";
-import { handleNavigationCallbacks } from "./handlers/navigationHandlers";
-import { handleEventsCallbacks } from "./handlers/eventsHandlers";
-import { handleText } from "./handlers/textHandlers";
+import { handleBookingCallbacks } from "./handlers/bookingHandler";
+import { handleTicketCallbacks } from "./handlers/ticketHandler";
+import { handleNavigationCallbacks } from "./handlers/navigationHandler";
+import { handleEventsCallbacks } from "./handlers/eventHandler";
+import { handleText } from "./handlers/textHandler";
 
 import { SharedContext, SessionData } from "@/types/grammy/SessionData";
 import { isRootSetupActive } from "@/utils/checkRoot";
