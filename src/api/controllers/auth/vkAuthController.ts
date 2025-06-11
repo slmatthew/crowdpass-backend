@@ -26,7 +26,7 @@ function parseJwt(token: string) {
 export async function vkCallback(req: Request, res: Response) {
   const { code, code_verifier, device_id, state } = req.body;
 
-  if (!code || !code_verifier || !device_id) {
+  if(!code || !code_verifier || !device_id) {
     return res.status(400).json({ message: "Отсутствует код авторизации." });
   }
 
@@ -44,7 +44,7 @@ export async function vkCallback(req: Request, res: Response) {
 
     const vkData = response.data;
 
-    if (!vkData.id_token) {
+    if(!vkData.id_token) {
       return res.status(400).json({ message: "Не удалось получить id_token" });
     }
     
@@ -52,7 +52,7 @@ export async function vkCallback(req: Request, res: Response) {
 
     const user = await UserService.findByPlatformId('VK', vkUserInfo.sub.toString(), true);
 
-    if (!user || !user.admin) {
+    if(!user || !user.admin) {
       return res.status(403).json({ message: "Доступ запрещён: пользователь не найден или не является администратором." });
     }
 

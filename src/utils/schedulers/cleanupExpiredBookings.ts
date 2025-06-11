@@ -2,7 +2,7 @@ import cron from "node-cron";
 import { prisma } from "@/db/prisma";
 import { Platform } from "@prisma/client";
 import { telegram } from "@/bots/telegram";
-import { vk } from "@/bots/vk"; // предположим, что у тебя экспортирован API
+import { vk } from "@/bots/vk";
 import { BookingStatus } from "@prisma/client";
 import { MessageQueueService } from "@/services/messageQueueService";
 
@@ -43,7 +43,7 @@ export function scheduleExpiredBookingCleanup() {
       },
     });
 
-    if (expiredBookings.length === 0) return;
+    if(expiredBookings.length === 0) return;
 
     const idsToCancel = expiredBookings.map((b) => b.id);
     await prisma.booking.updateMany({

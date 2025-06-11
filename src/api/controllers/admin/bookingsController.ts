@@ -21,7 +21,7 @@ export async function getBookings(req: Request, res: Response) {
 export async function getBookingById(req: Request, res: Response) {
   const id = Number(req.params.id);
   const booking = await BookingService.getById(id);
-  if (!booking) return res.status(404).json({ message: "Booking not found" });
+  if(!booking) return res.status(404).json({ message: "Booking not found" });
   res.json(booking);
 }
 
@@ -61,7 +61,7 @@ export async function updateBookingStatus(req: Request, res: Response) {
     /* format? */
     getBookingById(req, res);
   } catch(err) {
-    if (err instanceof BookingError) {
+    if(err instanceof BookingError) {
       // console.error(`[updateBookingStatus/${err.code}] ${err.message}`, err.metadata);
       return res.status(400).json({ message: err.message });
     }

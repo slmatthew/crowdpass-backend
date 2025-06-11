@@ -110,7 +110,7 @@ export class UserService {
 
     try {
       const parsed = Number(search);
-      if (
+      if(
         Number.isSafeInteger(parsed) &&
         parsed >= -2147483648 &&
         parsed <= 2147483647
@@ -183,7 +183,7 @@ export class UserService {
 
     if(sourceUser.isBanned) throw new UserError(CommonErrorCodes.USER_BANNED, 'Пользователь заблокирован');
   
-    if (
+    if(
       (targetPlatform === Platform.VK && sourceUser.vkId !== null) ||
       (targetPlatform === Platform.TELEGRAM && sourceUser.telegramId !== null)
     ) {

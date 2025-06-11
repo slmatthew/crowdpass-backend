@@ -228,7 +228,7 @@ export class EventService {
     const event = await prisma.event.findUnique({
       where: { id },
     });
-    if (!event) throw new EventError(CommonErrorCodes.EVENT_NOT_FOUND, 'Мероприятие не найдено');
+    if(!event) throw new EventError(CommonErrorCodes.EVENT_NOT_FOUND, 'Мероприятие не найдено');
 
     const managers = await prisma.admin.findMany({
       where: { organizerId: event.organizerId },

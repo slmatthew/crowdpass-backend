@@ -4,10 +4,10 @@ import { PAGE_SIZE } from "@/constants/appConstants";
 
 export async function sendBookingsPage(ctx: MessageContext, page: number) {
   const user = ctx.state.user;
-  if (!user) return ctx.send("Пользователь не найден.");
+  if(!user) return ctx.send("Пользователь не найден.");
 
   const bookings = await BookingService.getByUserId(user.id);
-  if (!bookings.length) {
+  if(!bookings.length) {
     return ctx.send("У вас пока нет активных бронирований 😔");
   }
 
@@ -20,14 +20,14 @@ export async function sendBookingsPage(ctx: MessageContext, page: number) {
 
   bookingsPage.forEach((booking, index) => {
     const event = booking.bookingTickets[0]?.ticket.ticketType.event;
-    if (!event) return;
+    if(!event) return;
 
     text += `*${startIndex + index + 1}.* ${event.name}\n📅 ${new Date(event.startDate).toLocaleDateString()} | 📍 ${event.location}\n`;
 
     const groups = booking.bookingTickets.reduce((acc, bt) => {
       const t = bt.ticket.ticketType;
       const key = `${t.name}_${t.price}`;
-      if (!acc[key]) acc[key] = { type: t.name, price: Number(t.price), count: 0 };
+      if(!acc[key]) acc[key] = { type: t.name, price: Number(t.price), count: 0 };
       acc[key].count++;
       return acc;
     }, {} as Record<string, { type: string; price: number; count: number }>);
@@ -45,14 +45,14 @@ export async function sendBookingsPage(ctx: MessageContext, page: number) {
     }).row();
   });
 
-  if (page > 1) {
+  if(page > 1) {
     keyboard.textButton({
       label: "⬅️ Назад",
       payload: { action: `mybookings_page_${page - 1}` },
     });
   }
 
-  if (page < totalPages) {
+  if(page < totalPages) {
     keyboard.textButton({
       label: "Вперёд ➡️",
       payload: { action: `mybookings_page_${page + 1}` },

@@ -16,9 +16,9 @@ export enum CallbackAction {
   EVENT_GET_SUBCATEGORY = "ev_get_subctg",
 
   /* бронирования */
-  MY_BOOKINGS_PAGE = "mbk_page", // страница бронирований
+  MY_BOOKINGS_PAGE = "mbk_page",
   MY_BOOKING_PAY = "mbk_pay",
-  MY_BOOKING_CANCEL = "mbk_cancel", // страница бронирования
+  MY_BOOKING_CANCEL = "mbk_cancel",
   BOOKING_START = "bk_start",
   BOOKING_SELECT_TYPE = "bk_type",
   BOOKING_CONFIRM = "bk_confirm",
@@ -26,7 +26,7 @@ export enum CallbackAction {
 
   /* билеты */
   MY_TICKETS_PAGE = "mt_page",
-  TICKET_QR = "tk_qr", // мои билеты
+  TICKET_QR = "tk_qr",
 
   /* привязка аккаунта TG */
   LINK_CONFIRM = "confirm_link",

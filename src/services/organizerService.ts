@@ -33,7 +33,7 @@ export class OrganizerService {
 
   static async getByManagerId(userId: number) {
     const admin = await prisma.admin.findUnique({ where: { userId } });
-    if (!admin?.organizerId) return null;
+    if(!admin?.organizerId) return null;
 
     return this.getById(admin.organizerId);
   }

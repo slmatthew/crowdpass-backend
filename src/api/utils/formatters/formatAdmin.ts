@@ -16,15 +16,15 @@ export async function formatAdmin(admin: Admin & {
     createdAt: admin.createdAt,
   };
 
-  if (!extended) return result;
+  if(!extended) return result;
 
-  if (fields.includes("user")) {
+  if(fields.includes("user")) {
     result.user = admin.user ?? await prisma.user.findUnique({
       where: { id: admin.userId },
     });
   }
 
-  if (fields.includes("organizer") && admin.organizerId) {
+  if(fields.includes("organizer") && admin.organizerId) {
     result.organizer = admin.organizer ?? await prisma.organizer.findUnique({
       where: { id: admin.organizerId },
     });

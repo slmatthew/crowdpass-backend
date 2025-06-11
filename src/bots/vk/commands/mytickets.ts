@@ -4,7 +4,7 @@ import { BookingStatus } from "@prisma/client";
 
 export async function sendTicketsPage(ctx: MessageContext) {
   const user = ctx.state.user;
-  if (!user) return ctx.send("Пользователь не найден.");
+  if(!user) return ctx.send("Пользователь не найден.");
 
   const bookings = await BookingService.getByUserId(user.id, BookingStatus.PAID);
   const tickets = [];
@@ -13,7 +13,7 @@ export async function sendTicketsPage(ctx: MessageContext) {
     for (const bt of booking.bookingTickets) {
       const ticket = bt.ticket;
       const event = ticket.ticketType.event;
-      if (event) {
+      if(event) {
         tickets.push({
           id: ticket.id,
           eventName: event.name,
@@ -25,7 +25,7 @@ export async function sendTicketsPage(ctx: MessageContext) {
     }
   }
 
-  if (!tickets.length) {
+  if(!tickets.length) {
     return ctx.send("У вас пока нет активных билетов 😔");
   }
 

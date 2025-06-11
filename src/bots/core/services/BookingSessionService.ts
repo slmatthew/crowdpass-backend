@@ -21,7 +21,7 @@ class BookingSessionService {
   deleteSession(userId: number) {
     this.sessions.delete(userId);
     const timeout = this.timeouts.get(userId);
-    if (timeout) clearTimeout(timeout);
+    if(timeout) clearTimeout(timeout);
     this.timeouts.delete(userId);
   }
 
@@ -35,7 +35,7 @@ class BookingSessionService {
 
   deleteTimeout(userId: number) {
     const timeout = this.timeouts.get(userId);
-    if (timeout) clearTimeout(timeout);
+    if(timeout) clearTimeout(timeout);
     this.timeouts.delete(userId);
   }
 }

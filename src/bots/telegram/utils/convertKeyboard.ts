@@ -2,7 +2,7 @@ import { InlineKeyboard, Keyboard } from "grammy";
 import { AbstractKeyboard } from "@/bots/core/ui/abstractTypes";
 
 export function convertKeyboard(abstract: AbstractKeyboard): InlineKeyboard | Keyboard {
-  if (abstract.inline) {
+  if(abstract.inline) {
     const keyboard = new InlineKeyboard();
     abstract.buttons.forEach(row => {
       const tgButtons = row.map(btn => {

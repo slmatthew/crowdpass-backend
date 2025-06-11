@@ -10,7 +10,7 @@ export async function getAllOrganizers(req: Request, res: Response) {
 export async function getOrganizerById(req: Request, res: Response) {
   const id = Number(req.params.id);
   const organizer = await OrganizerService.getById(id);
-  if (!organizer) return res.status(404).json({ message: "Не найден" });
+  if(!organizer) return res.status(404).json({ message: "Не найден" });
   res.json(organizer);
 }
 
@@ -19,7 +19,7 @@ export async function getMyOrganizer(req: Request, res: Response) {
   if(!userId) return res.status(400).json({ message: "Произошла ошибка" });
 
   const organizer = await OrganizerService.getByManagerId(userId);
-  if (!organizer) return res.status(404).json({ message: "Не найден" });
+  if(!organizer) return res.status(404).json({ message: "Не найден" });
   res.json(organizer);
 }
 

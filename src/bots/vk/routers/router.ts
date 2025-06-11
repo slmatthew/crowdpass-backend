@@ -12,7 +12,7 @@ export class VkRouter {
 
   private fallbackHandler?: Handler;
 
-  // === Текстовые команды ===
+  // текст
   registerTextCommand(command: string, handler: Handler) {
     this.textCommands.set(command.toLowerCase(), handler);
   }
@@ -21,7 +21,7 @@ export class VkRouter {
     this.textPatterns.push({ pattern, handler });
   }
 
-  // === Payload-команды ===
+  // payload
   registerPayloadCommand(action: string, handler: Handler) {
     this.payloadCommands.set(action, handler);
   }
@@ -38,27 +38,27 @@ export class VkRouter {
     const payload = ctx.messagePayload as { action?: string } | undefined;
     const action = payload?.action;
 
-    if (action) {
+    if(action) {
       const exact = this.payloadCommands.get(action);
-      if (exact) return exact(ctx);
+      if(exact) return exact(ctx);
 
       for (const { pattern, handler } of this.payloadPatterns) {
         const match = action.match(pattern);
-        if (match) return handler(ctx, match);
+        if(match) return handler(ctx, match);
       }
     }
 
     const text = ctx.text?.trim();
-    if (text) {
+    if(text) {
       const exact = this.textCommands.get(text.toLowerCase());
-      if (exact) return exact(ctx);
+      if(exact) return exact(ctx);
 
       for (const { pattern, handler } of this.textPatterns) {
         const match = text.match(pattern);
-        if (match) return handler(ctx, match);
+        if(match) return handler(ctx, match);
       }
     }
 
-    if (this.fallbackHandler) return this.fallbackHandler(ctx);
+    if(this.fallbackHandler) return this.fallbackHandler(ctx);
   }
 }

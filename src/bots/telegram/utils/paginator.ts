@@ -11,8 +11,8 @@ import dayjs from "dayjs";
 export async function sendBookingsPage(ctx: CommandContext<SharedContext>|CallbackQueryContext<SharedContext>, userId: string, page: number, isEdit = false) {
   const user = ctx.sfx.user;
 
-  if (!user) {
-    if (isEdit) {
+  if(!user) {
+    if(isEdit) {
       await ctx.editMessageText("Пользователь не найден.", extraGoToHomeKeyboard);
     } else {
       await ctx.reply("Пользователь не найден.", extraGoToHomeKeyboard);
@@ -22,8 +22,8 @@ export async function sendBookingsPage(ctx: CommandContext<SharedContext>|Callba
 
   const bookings = await BookingService.getByUserId(user.id);
 
-  if (bookings.length === 0) {
-    if (isEdit) {
+  if(bookings.length === 0) {
+    if(isEdit) {
       await ctx.editMessageText("У вас пока нет активных бронирований 😔", extraGoToHomeKeyboard);
     } else {
       await ctx.reply("У вас пока нет активных бронирований 😔", extraGoToHomeKeyboard);
@@ -42,14 +42,14 @@ export async function sendBookingsPage(ctx: CommandContext<SharedContext>|Callba
   bookingsPage.forEach((booking, index) => {
     const event = booking.bookingTickets[0]?.ticket.ticketType.event;
   
-    if (event) {
+    if(event) {
       text += `*${startIndex + index + 1}.* ${event.name}\n📅 ${dayjs(event.startDate).format("DD.MM.YYYY")} | 📍 ${event.location}\n`;
   
       const ticketGroups = booking.bookingTickets.reduce((acc, bt) => {
         const type = bt.ticket.ticketType.name;
         const price = (bt.ticket.ticketType.price as unknown) as number;
         const key = `${type}_${price}`;
-        if (!acc[key]) {
+        if(!acc[key]) {
           acc[key] = { type, price, count: 0 };
         }
         acc[key].count++;
@@ -71,17 +71,17 @@ export async function sendBookingsPage(ctx: CommandContext<SharedContext>|Callba
     }
   });  
 
-  if (page > 1) {
+  if(page > 1) {
     keyboard.text("⬅️ Назад", callbackPayloads.myBookingsPage(page - 1));
   }
-  if (page < totalPages) {
+  if(page < totalPages) {
     keyboard.text("Вперёд ➡️", callbackPayloads.myBookingsPage(page + 1));
   }
 
   keyboard.row();
   keyboard.text('Главное меню', CallbackAction.GO_HOME);
 
-  if (isEdit) {
+  if(isEdit) {
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       reply_markup: keyboard,
@@ -97,9 +97,9 @@ export async function sendBookingsPage(ctx: CommandContext<SharedContext>|Callba
 export async function sendEventsPage(ctx: CommandContext<Context>|CallbackQueryContext<Context>, page: number, isEdit = false) {
   const events = await EventService.searchShared();
 
-  if (events.length === 0) {
+  if(events.length === 0) {
     const message = "Пока нет доступных мероприятий 😔";
-    if (isEdit) {
+    if(isEdit) {
       await ctx.editMessageText(message, extraGoToHomeKeyboard);
     } else {
       await ctx.reply(message, extraGoToHomeKeyboard);
@@ -125,17 +125,17 @@ export async function sendEventsPage(ctx: CommandContext<Context>|CallbackQueryC
 
   keyboard.row();
 
-  if (page > 1) {
+  if(page > 1) {
     keyboard.text("⬅️ Назад", callbackPayloads.eventsPage(page - 1));
   }
-  if (page < totalPages) {
+  if(page < totalPages) {
     keyboard.text("Вперёд ➡️", callbackPayloads.eventsPage(page + 1));
   }
 
   keyboard.row();
   keyboard.text('Главное меню', CallbackAction.GO_HOME);
 
-  if (isEdit) {
+  if(isEdit) {
     await ctx.editMessageText(text, {
       parse_mode: "Markdown",
       reply_markup: keyboard,

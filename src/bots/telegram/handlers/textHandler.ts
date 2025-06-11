@@ -61,20 +61,20 @@ export function handleText(bot: Bot<SharedContext, Api<RawApi>>) {
     const user = ctx.sfx.user!;
     const session = bookingSessionService.getSession(user.id);
   
-    if (!session || !session.ticketTypeId || session.step !== 'ask_count') {
+    if(!session || !session.ticketTypeId || session.step !== 'ask_count') {
       return await ctx.reply("❓ Я не понял вас.\n\nПожалуйста, используйте команды или напишите /help для списка доступных команд.", extraGoToHomeKeyboard);
     }
   
     const count = parseInt(ctx.message.text.trim());
   
-    if (isNaN(count) || count <= 0) {
+    if(isNaN(count) || count <= 0) {
       await ctx.reply("Пожалуйста, отправьте корректное положительное число или /cancel для отмены");
       return;
     }
   
     const availableTickets = await TicketService.getAvailableTickets(session.ticketTypeId, count);
   
-    if (availableTickets.length < count) {
+    if(availableTickets.length < count) {
       await ctx.reply(`😔 Недостаточно свободных билетов. Доступно только ${availableTickets.length}`);
       return;
     }

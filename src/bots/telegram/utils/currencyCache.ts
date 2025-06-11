@@ -25,7 +25,7 @@ class CurrencyCache {
   async getCurrencies() {
     const now = Date.now();
 
-    if (this.cache && now - this.lastUpdated < this.ttl) {
+    if(this.cache && now - this.lastUpdated < this.ttl) {
       return this.cache;
     }
 
@@ -35,7 +35,7 @@ class CurrencyCache {
       this.lastUpdated = now;
       return this.cache;
     } catch (error) {
-      if (this.cache) return this.cache;
+      if(this.cache) return this.cache;
       throw new Error("Failed to fetch currencies and no cache available");
     }
   }

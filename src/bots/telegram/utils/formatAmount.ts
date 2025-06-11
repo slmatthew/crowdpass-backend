@@ -8,16 +8,16 @@ export function formatAmount(amount: number, currency: Currency): string {
 
   integer = integer.replace(/\B(?=(\d{3})+(?!\d))/g, currency.thousands_sep);
 
-  if (currency.drop_zeros && Number(fraction) === 0) {
+  if(currency.drop_zeros && Number(fraction) === 0) {
     fraction = "";
-  } else if (fraction) {
+  } else if(fraction) {
     fraction = currency.decimal_sep + fraction;
   }
 
   const formatted = integer + fraction;
 
   const space = currency.space_between ? " " : "";
-  if (currency.symbol_left) {
+  if(currency.symbol_left) {
     return `${currency.native}${space}${formatted}`;
   } else {
     return `${formatted}${space}${currency.native}`;

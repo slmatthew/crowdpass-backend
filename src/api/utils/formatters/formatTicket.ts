@@ -16,9 +16,9 @@ export async function formatTicket(ticket: Ticket & {
     ticketTypeId: ticket.ticketTypeId,
   };
 
-  if (!extended) return result;
+  if(!extended) return result;
 
-  if (fields.includes("ticketType")) {
+  if(fields.includes("ticketType")) {
     result.ticketType = ticket.ticketType ?? await prisma.ticketType.findUnique({
       where: { id: ticket.ticketTypeId },
       include: {

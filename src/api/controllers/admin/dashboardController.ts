@@ -19,13 +19,13 @@ export const dashboardController = {
   async getMe(req: Request, res: Response) {
     const userId = req.user?.id;
 
-    if (!userId) {
+    if(!userId) {
       return res.status(401).json({ message: 'Не найден id пользователя' });
     }
 
     const user = await UserService.findById(userId);
 
-    if (!user || !user.admin) {
+    if(!user || !user.admin) {
       return res.status(403).json({ message: 'Доступ запрещен' });
     }
 

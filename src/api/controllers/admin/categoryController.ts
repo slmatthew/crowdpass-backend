@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { CategoryService } from "@/services/categoryService";
 import { privileges } from "@/api/utils/privileges";
 
-// === CATEGORY ===
+// CATEGORY
 
 export async function getAllCategories(req: Request, res: Response) {
   const includeSubcategories = req.query.subcategories === "true" || req.query.subcategories === "1";
@@ -13,7 +13,7 @@ export async function getAllCategories(req: Request, res: Response) {
 export async function getCategory(req: Request, res: Response) {
   const id = Number(req.params.id);
   const category = await CategoryService.getCategoryById(id, true);
-  if (!category) return res.status(404).json({ error: "Категория не найдена" });
+  if(!category) return res.status(404).json({ error: "Категория не найдена" });
   res.json(category);
 }
 
@@ -42,7 +42,7 @@ export async function deleteCategory(req: Request, res: Response) {
   res.json(deleted);
 }
 
-// === SUBCATEGORY ===
+// SUBCATEGORY
 
 export async function getAllSubcategories(req: Request, res: Response) {
   const subcategories = await CategoryService.getAllSubcategories(false);
@@ -52,7 +52,7 @@ export async function getAllSubcategories(req: Request, res: Response) {
 export async function getSubcategory(req: Request, res: Response) {
   const id = Number(req.params.id);
   const subcategory = await CategoryService.getSubcategoryById(id, true);
-  if (!subcategory) return res.status(404).json({ error: "Подкатегория не найдена" });
+  if(!subcategory) return res.status(404).json({ error: "Подкатегория не найдена" });
   res.json(subcategory);
 }
 

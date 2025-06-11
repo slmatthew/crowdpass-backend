@@ -54,11 +54,11 @@ export class TicketTypeService {
       include: { tickets: true },
     });
   
-    if (!existing) throw new TicketTypeError(TicketTypeErrorCodes.TICKET_TYPE_NOT_FOUND, "Тип билета не найден");
+    if(!existing) throw new TicketTypeError(TicketTypeErrorCodes.TICKET_TYPE_NOT_FOUND, "Тип билета не найден");
   
     const issuedCount = existing.tickets.length;
   
-    if (data.quantity !== undefined && data.quantity < issuedCount) {
+    if(data.quantity !== undefined && data.quantity < issuedCount) {
       throw new TicketTypeError(TicketTypeErrorCodes.INVALID_QUANTITY, `Нельзя установить количество меньше ${issuedCount} – столько билетов уже выпущено`);
     }
   
@@ -85,16 +85,16 @@ export class TicketTypeService {
       },
     });
   
-    if (!ticketType) throw new Error("Тип билетов не найден");
+    if(!ticketType) throw new Error("Тип билетов не найден");
   
     const soldTickets = ticketType.tickets.filter(t => t.status === "SOLD");
     const reservedTickets = ticketType.tickets.filter(t => t.status === "RESERVED");
   
-    if (soldTickets.length > 0 && userRole === "MANAGER") {
+    if(soldTickets.length > 0 && userRole === "MANAGER") {
       throw new TicketTypeError(TicketTypeErrorCodes.ACCESS_DENIED, "Нельзя удалить тип билетов с уже проданными билетами");
     }
   
-    if (reservedTickets.length > 0 && !confirm) {
+    if(reservedTickets.length > 0 && !confirm) {
       throw new TicketTypeError(TicketTypeErrorCodes.NEED_CONFIRM, "Есть активные бронирования. Подтвердите удаление");
     }
   

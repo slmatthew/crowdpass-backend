@@ -6,9 +6,9 @@ import { homeKeyboard } from "../controllers/navigationController";
 
 export const startCommand = async (ctx: CommandContext<SharedContext>) => {
   const user = ctx.sfx?.user;
-  if (!user) return;
+  if(!user) return;
 
-  // === Обработка start=link_<code> ===
+  // обработка start=link_<code>
   const payload = ctx.match;
   if(payload?.startsWith("link_")) {
     const code = payload.slice(5);
@@ -28,7 +28,7 @@ export const startCommand = async (ctx: CommandContext<SharedContext>) => {
     }
   }
 
-  // === Стандартное приветствие ===
+  // стандартная обработка
   await ctx.reply(
     `👋 Привет, ${user.firstName || "пользователь"}!
 

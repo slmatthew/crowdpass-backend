@@ -31,7 +31,7 @@ export async function startVkBot() {
   const router = new VkRouter();
   const stepRouter = new StepRouter();
 
-  // === Регистрируем команды ===
+  // регистрация обработчиков
 
   handleNavigation(router);
   handleEvents(router);
@@ -41,11 +41,11 @@ export async function startVkBot() {
 
   router.setFallback(handleFallback);
 
-  // === Middleware: загрузка пользователя ===
+  // middleware
 
   vk.updates.use(async (ctx, next) => {
     const vkId = ctx.senderId?.toString();
-    if (!vkId) return next();
+    if(!vkId) return next();
 
     const [profile] = await vk.api.users.get({ user_ids: [vkId] });
 
@@ -59,7 +59,7 @@ export async function startVkBot() {
     await next();
   });
 
-  // === Обработка сообщений ===
+  // обработка сообщений
 
   vk.updates.on('message_new', async (ctx) => {
     if(ctx.state.user.isBanned) return ctx.send('Вы заблокированы');

@@ -63,7 +63,7 @@ export class CoreBookingController<C extends PlatformContext, P extends Platform
           const type = bt.ticket.ticketType.name;
           const price = (bt.ticket.ticketType.price as unknown) as number;
           const key = `${type}_${price}`;
-          if (!acc[key]) {
+          if(!acc[key]) {
             acc[key] = { type, price, count: 0 };
           }
           acc[key].count++;
@@ -175,7 +175,7 @@ export class CoreBookingController<C extends PlatformContext, P extends Platform
     ticketTypes.forEach((type) => {
       const availableCount = type.tickets.filter(t => t.status === "AVAILABLE").length;
       totalAvailable += availableCount;
-      if (availableCount > 0) {
+      if(availableCount > 0) {
         keyboard.callbackButton(`${type.name} — ${type.price}₽ (${availableCount} шт.)`, this.strategy.callbackPayloads.bookingSelectType(type.id));
         keyboard.row();
       }
@@ -237,7 +237,7 @@ export class CoreBookingController<C extends PlatformContext, P extends Platform
       };
     }
   
-    if (!session.ticketTypeId || !session.ticketsCount || session.step !== 'end') {
+    if(!session.ticketTypeId || !session.ticketsCount || session.step !== 'end') {
       bookingSessionService.deleteSession(user.id);
       return {
         ok: false,

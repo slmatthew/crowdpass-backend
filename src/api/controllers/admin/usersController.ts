@@ -61,7 +61,7 @@ export async function getUserById(req: Request, res: Response) {
 
   const user = await UserService.findById(id);
 
-  if (!user) return res.status(404).json({ message: "Пользователь не найден" });
+  if(!user) return res.status(404).json({ message: "Пользователь не найден" });
 
   res.json(formatUser(user));
 }
@@ -72,7 +72,7 @@ export async function changePlatformId(req: Request, res: Response) {
   const userId = Number(req.params.id);
   const { targetPlatform, targetId } = req.body;
 
-  if (!userId || !targetPlatform || !targetId) {
+  if(!userId || !targetPlatform || !targetId) {
     return res.status(400).json({ message: "Параметры не указаны" });
   }
 

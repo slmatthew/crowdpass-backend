@@ -9,7 +9,7 @@ import { CallbackAction } from "../constants/callbackActions";
 export const myticketsCommand = async (ctx: CommandContext<SharedContext>) => {
   const user = ctx.sfx.user;
 
-  if (!user) {
+  if(!user) {
     await ctx.reply("Пользователь не найден.", extraGoToHomeKeyboard);
     return;
   }
@@ -27,7 +27,7 @@ export const myticketsCommand = async (ctx: CommandContext<SharedContext>) => {
   for (const booking of bookings) {
     for (const bt of booking.bookingTickets) {
       const event = bt.ticket.ticketType.event;
-      if (event) {
+      if(event) {
         tickets.push({
           ticketId: bt.ticket.id,
           eventName: event.name,
@@ -39,7 +39,7 @@ export const myticketsCommand = async (ctx: CommandContext<SharedContext>) => {
     }
   }
 
-  if (tickets.length === 0) {
+  if(tickets.length === 0) {
     await ctx.reply("У вас пока нет активных билетов 😔", extraGoToHomeKeyboard
     );
     return;

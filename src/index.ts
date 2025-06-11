@@ -33,7 +33,7 @@ async function main() {
 }
 
 async function shutdown() {
-  if (shuttingDown) return;
+  if(shuttingDown) return;
   shuttingDown = true;
 
   console.log("🧹 Завершение работы...");
@@ -41,9 +41,6 @@ async function shutdown() {
   try {
     await telegram.stop();
     if(vk) await vk.updates.stop();
-
-    // TODO: остановка очередей/таймеров, если надо
-    // MessageQueueService.stop();
 
     await prisma.$disconnect();
     console.log("✅ Shutdown завершён");

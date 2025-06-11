@@ -12,7 +12,7 @@ export class TelegramAuth {
   static async callback(req: Request, res: Response) {
     const data = req.query;
 
-    if (!verifyTelegramAuth(data, TELEGRAM_BOT_TOKEN)) {
+    if(!verifyTelegramAuth(data, TELEGRAM_BOT_TOKEN)) {
       return res.status(403).json({ message: "Проверка Telegram-подписи не пройдена." });
     }
 
@@ -23,7 +23,7 @@ export class TelegramAuth {
     try {
       const user = await UserService.findByPlatformId('TELEGRAM', data.id.toString(), true);
 
-      if (!user || !user.admin) {
+      if(!user || !user.admin) {
         return res.status(403).json({ message: "Нет доступа." });
       }
 
@@ -52,7 +52,7 @@ export class TelegramAuth {
   static async miniApp(req: Request, res: Response) {
     const authHeader = req.headers.authorization;
     
-    if (!authHeader) {
+    if(!authHeader) {
       return res.status(401).json({ message: "Необходимы данные из Telegram" });
     }
 

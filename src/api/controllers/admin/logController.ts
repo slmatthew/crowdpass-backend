@@ -18,14 +18,14 @@ export async function getLogs(req: Request, res: Response) {
 
   const filters: LogFilters = {};
 
-  if (actorId) filters.actorId = Number(actorId);
-  if (action) filters.action = String(action);
-  if (targetType) filters.targetType = String(targetType);
+  if(actorId) filters.actorId = Number(actorId);
+  if(action) filters.action = String(action);
+  if(targetType) filters.targetType = String(targetType);
 
-  if (from || to) {
+  if(from || to) {
     filters.createdAt = {};
-    if (from) filters.createdAt.gte = new Date(from as string);
-    if (to) filters.createdAt.lte = new Date(to as string);
+    if(from) filters.createdAt.gte = new Date(from as string);
+    if(to) filters.createdAt.lte = new Date(to as string);
   }
 
   const take = Number(pageSize);

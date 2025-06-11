@@ -4,11 +4,11 @@ import { Request, Response } from 'express';
 
 export async function refresh(req: Request, res: Response) {
   const { refreshToken } = req.body;
-  if (!refreshToken) return res.status(400).json({ message: "Отсутствует refresh token" });
+  if(!refreshToken) return res.status(400).json({ message: "Отсутствует refresh token" });
 
   const session = await SessionService.findByRefreshToken(refreshToken);
 
-  if (!session || session.expiresAt < new Date()) {
+  if(!session || session.expiresAt < new Date()) {
     return res.status(401).json({ message: "Недействительный или истёкший refresh token" });
   }
 

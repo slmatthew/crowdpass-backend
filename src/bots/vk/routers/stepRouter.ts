@@ -7,20 +7,20 @@ import { VkStrategy } from "../controllers/VkStrategy";
 export class StepRouter {
   async handle(ctx: MessageContext) {
     const userId = ctx.state.user.id;
-    if (!userId) return false;
+    if(!userId) return false;
 
     const session = bookingSessionService.getSession(userId);
-    if (session && session.step === 'ask_count') {
+    if(session && session.step === 'ask_count') {
       const count = parseInt(ctx.text?.trim() || "");
 
-      if (isNaN(count) || count <= 0) {
+      if(isNaN(count) || count <= 0) {
         await ctx.send("❗ Введите корректное положительное число или напишите \"отмена\".");
         return true;
       }
 
       const available = await TicketService.getAvailableTickets(session.ticketTypeId!, count);
 
-      if (available.length < count) {
+      if(available.length < count) {
         await ctx.send(`😔 Недостаточно свободных билетов. Доступно только ${available.length}`);
         return true;
       }

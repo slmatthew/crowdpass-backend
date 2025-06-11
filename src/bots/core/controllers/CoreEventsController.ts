@@ -67,7 +67,7 @@ export class CoreEventsController<C extends PlatformContext, P extends PlatformP
     gEventDetails: PlatformPayloads['eventDetails'] | PlatformPayloads['eventDetailsCategory'] | PlatformPayloads['eventDetailsSubcategory'] = this.strategy.callbackPayloads.eventDetails,
     gEventsPage: PlatformPayloads['eventsPage'] | PlatformPayloads['eventsCategoriedPage'] | PlatformPayloads['eventsSubcategoriedPage'] = this.strategy.callbackPayloads.eventsPage,
   ): Promise<ControllerResponse> {
-    if (events.length === 0) {
+    if(events.length === 0) {
       return this.badResult("Пока нет доступных мероприятий 😔");
     }
 
@@ -91,10 +91,10 @@ export class CoreEventsController<C extends PlatformContext, P extends PlatformP
 
     keyboard.row();
 
-    if (page > 1) {
+    if(page > 1) {
       keyboard.callbackButton("⬅️ Назад", gEventsPage(page - 1, entityId));
     }
-    if (page < totalPages) {
+    if(page < totalPages) {
       keyboard.callbackButton("Вперёд ➡️", gEventsPage(page + 1, entityId));
     }
 

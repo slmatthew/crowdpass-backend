@@ -32,9 +32,9 @@ export class BookingService {
 		limit = 20,
 	}: BookingQueryParams) {
 		const where: any = {};
-		if (status) where.status = status;
-		if (userId) where.userId = userId;
-		if (eventId) {
+		if(status) where.status = status;
+		if(userId) where.userId = userId;
+		if(eventId) {
 			where.bookingTickets = {
 				some: {
 					ticket: {
@@ -221,7 +221,7 @@ export class BookingService {
 						);
 					}
 				} else {
-					// booking.status = PAID
+					// booking.status === PAID
 					await TicketService.updateStatusMany(
 						actualTickets.map(t => t.id),
 						TicketStatus.RESERVED
@@ -442,7 +442,7 @@ export class BookingService {
 
 		for(const bt of booking.bookingTickets) {
 			const ticketType = bt.ticket.ticketType;
-			if (!ticketType) continue;
+			if(!ticketType) continue;
 
 			const eventId = ticketType.eventId;
 			const price = Number(ticketType.price);

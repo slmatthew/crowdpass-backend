@@ -1,4 +1,4 @@
-import { prisma } from "../../../db/prisma"; // путь подгони
+import { prisma } from "../../../db/prisma";
 import { Event } from "@prisma/client";
 import { FormatOptions } from "./formatOptions";
 
@@ -48,27 +48,27 @@ export async function formatEvent(event: Event & {
     subcategoryId: event.subcategoryId,
   };
 
-  if (!extended) return result;
+  if(!extended) return result;
 
-  if (fields.includes("organizer")) {
+  if(fields.includes("organizer")) {
     result.organizer = event.organizer ?? await prisma.organizer.findUnique({
       where: { id: event.organizerId },
     });
   }
 
-  if (fields.includes("category")) {
+  if(fields.includes("category")) {
     result.category = event.category ?? await prisma.category.findUnique({
       where: { id: event.categoryId },
     });
   }
 
-  if (fields.includes("subcategory")) {
+  if(fields.includes("subcategory")) {
     result.subcategory = event.subcategory ?? await prisma.subcategory.findUnique({
       where: { id: event.subcategoryId },
     });
   }
 
-  if (fields.includes("ticketTypes")) {
+  if(fields.includes("ticketTypes")) {
     result.ticketTypes = event.ticketTypes ?? await prisma.ticketType.findMany({
       where: { eventId: event.id },
     });

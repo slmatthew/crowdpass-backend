@@ -24,18 +24,18 @@ export async function getEventById(req: Request, res: Response) {
     extended ? await EventService.findByIdShared(id)
     : await EventService.findById(id);
 
-  if (!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
+  if(!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
   res.json(event);
 }
 
 export async function getEventOverview(req: Request, res: Response) {
   const id = Number(req.params.id);
-  if (!(await privileges.events.update(req.user!, id))) {
+  if(!(await privileges.events.update(req.user!, id))) {
     return res.status(403).json({ message: "Нет доступа" });
   }
 
   const event = await EventService.getOverview(id);
-  if (!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
+  if(!event) return res.status(404).json({ message: 'Мероприятие не найдено' });
 
   const revenue = await EventService.getEventTotalRevenue(event.id);
   (event as any).revenue = revenue;
@@ -117,7 +117,7 @@ export async function updateEventById(req: Request, res: Response) {
   } catch (err: any) {
     console.error("Ошибка при обновлении события:", err);
 
-    if (err instanceof z.ZodError) {
+    if(err instanceof z.ZodError) {
       return res.status(400).json({ message: "Невалидные данные", errors: err.errors });
     }
 
@@ -154,7 +154,7 @@ export async function createEvent(req: Request, res: Response) {
   } catch (err: any) {
     console.error("Ошибка при создании события:", err);
 
-    if (err instanceof z.ZodError) {
+    if(err instanceof z.ZodError) {
       return res.status(400).json({ message: "Невалидные данные", errors: err.errors });
     }
 

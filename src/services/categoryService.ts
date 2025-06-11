@@ -4,7 +4,7 @@ import { CategoryError, CategoryErrorCodes } from "@/types/errors/CategoryError"
 export class CategoryService {
   static isNotDeletedOption = { where: { isDeleted: false } };
 
-  // === GET ===
+  // get
 
   static async getAllCategories(subcategories: boolean = false, take?: number, skip?: number, order: 'asc' | 'desc' = 'asc') {
     return prisma.category.findMany({
@@ -66,7 +66,7 @@ export class CategoryService {
     });
   }
 
-  // === CREATE ===
+  // create
 
   static async createCategory(name: string) {
     return prisma.category.create({ data: { name } });
@@ -76,7 +76,7 @@ export class CategoryService {
     return prisma.subcategory.create({ data: { name, categoryId } });
   }
 
-  // === UPDATE ===
+  // update
 
   static async updateCategory(id: number, name: string) {
     return prisma.category.update({
@@ -95,7 +95,7 @@ export class CategoryService {
     });
   }
 
-  // === SOFT DELETE ===
+  // soft delete
 
   static async deleteCategory(id: number) {
     const category = await prisma.category.findUnique({ where: { id } });
@@ -127,7 +127,7 @@ export class CategoryService {
     });
   }
 
-  // === RESTORE ===
+  // restore
 
   static async restoreCategory(id: number) {
     return prisma.category.update({

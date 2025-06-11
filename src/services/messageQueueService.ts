@@ -19,7 +19,7 @@ export class MessageQueueService {
   static start() {
     setInterval(async () => {
       const item = queue.shift();
-      if (!item) return;
+      if(!item) return;
 
       try {
         switch (item.platform) {

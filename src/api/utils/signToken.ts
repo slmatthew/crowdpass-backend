@@ -11,7 +11,7 @@ export interface TokenData {
 
 export function signAccessToken(data: TokenData, expiresIn: SignOptions['expiresIn'] = '15m'): string {
   const secret = process.env.JWT_SECRET;
-  if (!secret) {
+  if(!secret) {
     throw new Error("JWT_SECRET is not set in environment variables");
   }
 

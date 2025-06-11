@@ -25,7 +25,7 @@ function initialSession(): SessionData {
 bot.use(session({ initial: initialSession }));
 bot.use(async (ctx, next) => {
   const telegramUser = ctx.from;
-  if (!telegramUser) return;
+  if(!telegramUser) return;
 
   const user = await UserService.findOrCreate({
     telegramId: telegramUser.id.toString(),
