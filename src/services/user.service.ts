@@ -295,6 +295,38 @@ export class UserService {
           ],
         },
       });
+
+      const updates: Promise<any>[] = [];
+
+      updates.push(
+        tx.booking.updateMany({
+          where: { userId: secondaryUser.id },
+          data: { userId: mainUser.id },
+        })
+      );
+
+      updates.push(
+        tx.session.updateMany({
+          where: { userId: secondaryUser.id },
+          data: { userId: mainUser.id },
+        })
+      );
+
+      updates.push(
+        tx.admin.updateMany({
+          where: { userId: secondaryUser.id },
+          data: { userId: mainUser.id },
+        })
+      );
+
+      updates.push(
+        tx.actionLog.updateMany({
+          where: { actorId: secondaryUser.id },
+          data: { actorId: mainUser.id },
+        })
+      );
+
+      await Promise.all(updates);
   
       await tx.user.delete({ where: { id: secondaryUser.id } });
 
