@@ -15,7 +15,7 @@ export const startCommand = async (ctx: CommandContext<SharedContext>) => {
 
     try {
       await UserService.confirmLink(code, user.id);
-      return await ctx.reply("✅ Аккаунты успешно связаны! Добро пожаловать 👏");
+      return await ctx.reply("✅ Аккаунты успешно связаны! Добро пожаловать 👏", { reply_markup: homeKeyboard });
     } catch (err: any) {
       const message =
         err.code === UserErrorCodes.LINK_CODE_INVALID
